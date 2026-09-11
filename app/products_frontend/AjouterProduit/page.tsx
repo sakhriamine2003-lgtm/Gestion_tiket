@@ -67,7 +67,7 @@ export default function AjouterProduitPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("/api/AjouteProduit", {
+      const response = await axios.post("/backend/GestionProduit/AjouterProduit", {
         marque,
         bureau: String(bureau),
         prix,
@@ -181,7 +181,7 @@ export default function AjouterProduitPage() {
           {/* Boutons d'action */}
           <div className="flex justify-end space-x-3 pt-4">
             <a
-              href="/products/AffichageProduit"
+              href="/products_frontend/AffichageProduit"
               className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-sm font-medium transition duration-150 text-center"
             >
               Annuler

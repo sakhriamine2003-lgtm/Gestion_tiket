@@ -3,11 +3,11 @@ import { prisma } from "@/lib/prisma";
 import EditProductForm from "./EditProductForm";
 
 type EditProductPageProps = {
-  params: Promise<{ id: string }>;
+  searchParams: Promise<{ id?: string }>;
 };
 
-export default async function EditProductPage({ params }: EditProductPageProps) {
-  const { id: idParam } = await params;
+export default async function EditProductPage({ searchParams }: EditProductPageProps) {
+  const { id: idParam } = await searchParams;
   const id = Number(idParam);
 
   if (!Number.isInteger(id) || id <= 0) {

@@ -27,7 +27,7 @@ export default function EditProductForm({ product }: { product: any }) {
     setIsSubmitting(true);
 
     try {
-      await axios.put("/api/AjouteProduit", {
+      await axios.put("/backend/GestionProduit/ModifierProduit", {
         productId: product.id,
         marque: formData.marque,
         bureau: formData.bureau,
@@ -36,7 +36,7 @@ export default function EditProductForm({ product }: { product: any }) {
       });
 
      
-      router.push("/products/AffichageProduit");
+      router.push("/products_frontend/AffichageProduit");
       router.refresh();
 
     } catch (error: any) {
@@ -108,7 +108,7 @@ export default function EditProductForm({ product }: { product: any }) {
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
-              onClick={() => router.push("/products/AffichageProduit")}
+              onClick={() => router.push("/products_frontend/AffichageProduit")}
               className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-sm font-medium"
             >
               Annuler

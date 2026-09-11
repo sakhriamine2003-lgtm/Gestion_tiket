@@ -14,7 +14,7 @@ export default function DeleteProductButton({ productId }: { productId: number }
     setIsDeleting(true);
 
     try {
-      const res = await fetch("/api/AjouteProduit", {
+      const res = await fetch("/backend/GestionProduit/SupprimerProduit", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId }),

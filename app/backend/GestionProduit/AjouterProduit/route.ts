@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export async function AjouterProduit(request: Request) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
 
