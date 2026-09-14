@@ -27,7 +27,7 @@ export default async function ProductsPage() {
             </p>
           </div>
           <a 
-            href="/products_frontend/AjouterProduit" 
+            href="/products_frontend/Gestion_product/AjouterProduit" 
             className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 text-sm"
           >
             <Plus size={18} />
@@ -89,7 +89,7 @@ export default async function ProductsPage() {
                       <td className="py-4 px-6 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <a
-                            href={`/products_frontend/ModifierProduit?id=${product.id}`}
+                            href={`/products_frontend/Gestion_product/ModifierProduit?id=${product.id}`}
                             aria-label={`Modifier ${product.marque}`}
                             title={`Modifier ${product.marque}`}
                             className="p-2 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"

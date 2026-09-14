@@ -181,7 +181,7 @@ export default function AjouterProduitPage() {
           {/* Boutons d'action */}
           <div className="flex justify-end space-x-3 pt-4">
             <a
-              href="/products_frontend/AffichageProduit"
+              href="/products_frontend/Gestion_product/AffichageProduit"
               className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-sm font-medium transition duration-150 text-center"
             >
               Annuler
