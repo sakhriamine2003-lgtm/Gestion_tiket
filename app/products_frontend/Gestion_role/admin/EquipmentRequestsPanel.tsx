@@ -18,7 +18,7 @@ export default function EquipmentRequestsPanel({ initialRequests, initialEquipme
   const [message, setMessage] = useState("");
 
   async function decide(id: number, status: "Acceptée" | "Refusée") {
-    const response = await fetch(`/api/equipment-requests/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+    const response = await fetch(`/backend/api/equipment-requests/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
     const data = await response.json();
     if (!response.ok) { setMessage(data.error || "Impossible de traiter la demande."); return; }
     setRequests((current) => current.map((request) => request.id === id ? { ...request, status } : request));

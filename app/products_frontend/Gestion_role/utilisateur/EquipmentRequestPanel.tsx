@@ -10,19 +10,28 @@ type Equipment = {
   condition: string;
 };
 
+type EquipmentRequest = {
+  id: number;
+  status: string;
+  createdAt: string;
+  product: { marque: string; bureau: string };
+};
+
 export default function EquipmentRequestPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showResponses, setShowResponses] = useState(false);
+  const [requests, setRequests] = useState<EquipmentRequest[]>([]);
 
   async function openPanel() {
     setIsOpen(true);
     setMessage("");
     setIsLoading(true);
     try {
-      const response = await fetch("/api/equipment");
+      const response = await fetch("/backend/api/equipment");
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Impossible de charger les équipements.");
       setEquipment(data);
@@ -38,7 +47,7 @@ export default function EquipmentRequestPanel() {
     setIsLoading(true);
     setMessage("");
     try {
-      const response = await fetch("/api/equipment-requests", {
+      const response = await fetch("/backend/api/equipment-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: selectedId }),
@@ -54,6 +63,22 @@ export default function EquipmentRequestPanel() {
     }
   }
 
+  async function openResponses() {
+    setShowResponses(true);
+    setMessage("");
+    setIsLoading(true);
+    try {
+      const response = await fetch("/backend/api/equipment-requests");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Impossible de charger vos réponses.");
+      setRequests(data);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -62,10 +87,39 @@ export default function EquipmentRequestPanel() {
           <h2 className="mt-1 text-xl font-semibold text-slate-900">Besoin d&apos;un équipement ?</h2>
           <p className="mt-1 text-sm text-slate-500">Consultez le matériel disponible et soumettez votre demande.</p>
         </div>
-        <button type="button" onClick={openPanel} className="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">
-          Demander un équipement
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={openResponses} className="rounded-lg border border-teal-600 px-4 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50">
+            Voir mes réponses
+          </button>
+          <button type="button" onClick={openPanel} className="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">
+            Demander un équipement
+          </button>
+        </div>
       </div>
+
+      {showResponses && (
+        <div className="mt-6 border-t border-slate-100 pt-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-900">Réponses de l&apos;administrateur</h3>
+            <button type="button" onClick={() => setShowResponses(false)} className="text-sm text-slate-500 hover:text-slate-900">Fermer</button>
+          </div>
+          {isLoading && requests.length === 0 ? <p className="text-sm text-slate-500">Chargement...</p> : null}
+          {!isLoading && requests.length === 0 ? <p className="text-sm text-slate-500">Vous n&apos;avez encore envoyé aucune demande.</p> : null}
+          <div className="space-y-3">
+            {requests.map((request) => (
+              <div key={request.id} className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900">{request.product.marque}</p>
+                  <p className="text-sm text-slate-500">{request.product.bureau} · Demandé le {new Date(request.createdAt).toLocaleDateString("fr-FR")}</p>
+                </div>
+                <span className={`text-sm font-semibold ${request.status === "Acceptée" ? "text-emerald-600" : request.status === "Refusée" ? "text-rose-600" : "text-amber-600"}`}>
+                  {request.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isOpen && (
         <div className="mt-6 border-t border-slate-100 pt-6">
