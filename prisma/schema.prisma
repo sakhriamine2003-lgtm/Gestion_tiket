@@ -33,4 +33,33 @@ model User {
   password  String
   user_role String
   createdAt DateTime @default(now())
+  equipmentRequests EquipmentRequest[]
+  assignedEquipment Equipment[] @relation("AssignedEquipment")
+}
+
+model Equipment {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        String
+  description String
+  condition   String
+  available   Boolean  @default(true)
+  assignedToId Int?
+  assignedTo  User?    @relation("AssignedEquipment", fields: [assignedToId], references: [id])
+  requests    EquipmentRequest[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EquipmentRequest {
+  id          Int       @id @default(autoincrement())
+  status      String    @default("En attente")
+  createdAt   DateTime  @default(now())
+  userId      Int
+  equipmentId Int
+  user        User      @relation(fields: [userId], references: [id])
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+
+  @@index([userId])
+  @@index([equipmentId])
 }
