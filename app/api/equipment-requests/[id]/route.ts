@@ -20,13 +20,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       if (!equipmentRequest || equipmentRequest.status !== "En attente") throw new Error("REQUEST_NOT_PENDING");
 
       if (status === "Acceptée") {
-        const equipment = await transaction.equipment.findFirst({
-          where: { id: equipmentRequest.equipmentId, available: true },
+        const product = await transaction.product.findFirst({
+          where: { id: equipmentRequest.productId, stock: { gt: 0 } },
         });
-        if (!equipment) throw new Error("EQUIPMENT_UNAVAILABLE");
-        await transaction.equipment.update({
-          where: { id: equipment.id },
-          data: { available: false, assignedToId: equipmentRequest.userId },
+        if (!product) throw new Error("EQUIPMENT_UNAVAILABLE");
+        await transaction.product.update({
+          where: { id: product.id },
+          data: { stock: { decrement: 1 } },
+        });
+        await transaction.user.update({
+          where: { id: equipmentRequest.userId },
+          data: { equipmentCount: { increment: 1 } },
         });
       }
       return transaction.equipmentRequest.update({ where: { id: requestId }, data: { status } });

@@ -24,6 +24,7 @@ model Product {
   stock     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  equipmentRequests EquipmentRequest[]
 }
 
 model User {
@@ -32,6 +33,7 @@ model User {
   email     String   @unique
   password  String
   user_role String
+  equipmentCount Int @default(0)
   createdAt DateTime @default(now())
   equipmentRequests EquipmentRequest[]
   assignedEquipment Equipment[] @relation("AssignedEquipment")
@@ -56,10 +58,13 @@ model EquipmentRequest {
   status      String    @default("En attente")
   createdAt   DateTime  @default(now())
   userId      Int
-  equipmentId Int
+  equipmentId Int?
+  productId   Int
   user        User      @relation(fields: [userId], references: [id])
-  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
 
   @@index([userId])
   @@index([equipmentId])
+  @@index([productId])
 }

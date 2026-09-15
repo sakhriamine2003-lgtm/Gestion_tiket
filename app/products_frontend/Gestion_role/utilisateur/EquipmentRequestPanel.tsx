@@ -41,7 +41,7 @@ export default function EquipmentRequestPanel() {
       const response = await fetch("/api/equipment-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ equipmentId: selectedId }),
+        body: JSON.stringify({ productId: selectedId }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Impossible d'envoyer la demande.");
