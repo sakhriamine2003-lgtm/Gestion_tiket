@@ -3,31 +3,59 @@ import { prisma } from "@/lib/prisma";
 
 // POST : Faire une demande d'équipement
 export async function POST(request: Request) {
-  const user = await getSession();
-  if (!user) return Response.json({ error: "Non autorisé" }, { status: 401 });
-
-  const { productId } = await request.json();
-  if (!productId) return Response.json({ error: "Produit invalide" }, { status: 400 });
-
   try {
-    const product = await prisma.product.findUnique({ where: { id: Number(productId) } });
-    if (!product) return Response.json({ error: "Produit introuvable" }, { status: 404 });
-    if (product.stock <= 0) return Response.json({ error: "Stock épuisé" }, { status: 409 });
+    const user = await getSession();
 
-    const existingRequest = await prisma.equipmentRequest.findFirst({
-      where: { userId: user.id, productId: Number(productId), status: "En attente" },
+    if (!user) {
+      return Response.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const productId = Number(body.productId);
+    const requestType = body.requestType === "panne" ? "panne" : "demande";
+    const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+    const status = requestType === "panne" ? "Panne signalée" : "En attente";
+
+    if (!Number.isInteger(productId) || productId <= 0) {
+      return Response.json({ error: "Produit invalide" }, { status: 400 });
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
     });
-    if (existingRequest) return Response.json({ error: "Demande déjà existante" }, { status: 409 });
 
-    const newRequest = await prisma.equipmentRequest.create({
-      data: { userId: user.id, productId: Number(productId) },
+    if (!product) {
+      return Response.json(
+        { error: "Produit introuvable" },
+        { status: 404 }
+      );
+    }
+
+    const demande = await prisma.equipmentRequest.create({
+      data: {
+        userId: user.id,
+        productId: product.id,
+        status,
+      },
     });
 
-    return Response.json(newRequest, { status: 201 });
+    return Response.json({
+      ...demande,
+      requestType,
+      reason: reason || (requestType === "panne" ? "Panne signalée" : "Demande de matériel"),
+    }, { status: 201 });
+
   } catch (error) {
-    return Response.json({ error: "Erreur serveur" }, { status: 500 });
+    console.error("Erreur lors de la création de la demande:", error);
+    return Response.json(
+      { error: "Erreur serveur" },
+      { status: 500 }
+    );
   }
 }
+
+
+
 
 // GET : Liste des demandes de l'utilisateur connecté ou de toutes les demandes pour l'admin
 export async function GET() {

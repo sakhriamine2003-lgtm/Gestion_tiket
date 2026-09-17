@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import axios from "axios";
 
 export default function DeleteProductButton({ productId }: { productId: number }) {
   const router = useRouter();
@@ -11,20 +12,27 @@ export default function DeleteProductButton({ productId }: { productId: number }
   async function handleDelete() {
     if (!confirm("Supprimer ce produit ?")) return;
 
+    const id = Number(productId);
+    if (!Number.isInteger(id) || id <= 0) {
+      alert("Produit invalide.");
+      return;
+    }
+
     setIsDeleting(true);
 
     try {
-      const res = await fetch("/backend/GestionProduit/SupprimerProduit", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
+      const res = await axios.delete("/backend/GestionProduit/SupprimerProduit", {
+        data: { productId: id },
       });
 
-      if (!res.ok) throw new Error("Erreur lors de la suppression.");
+      if (!res || res.status < 200 || res.status >= 300) {
+        throw new Error("Erreur lors de la suppression.");
+      }
 
       router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Erreur inconnue.");
+    } finally {
       setIsDeleting(false);
     }
   }

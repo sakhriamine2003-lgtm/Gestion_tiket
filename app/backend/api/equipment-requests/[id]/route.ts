@@ -17,9 +17,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   try {
     const updated = await prisma.$transaction(async (transaction) => {
       const equipmentRequest = await transaction.equipmentRequest.findUnique({ where: { id: requestId } });
-      if (!equipmentRequest || equipmentRequest.status !== "En attente") throw new Error("REQUEST_NOT_PENDING");
+      if (!equipmentRequest || !["En attente", "Panne signalée"].includes(equipmentRequest.status)) {
+        throw new Error("REQUEST_NOT_PENDING");
+      }
 
-      if (status === "Acceptée") {
+      if (status === "Acceptée" && equipmentRequest.status !== "Panne signalée") {
         const product = await transaction.product.findFirst({
           where: { id: equipmentRequest.productId, stock: { gt: 0 } },
         });

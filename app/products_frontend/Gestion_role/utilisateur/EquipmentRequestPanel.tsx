@@ -25,13 +25,18 @@ export default function EquipmentRequestPanel() {
   const [isLoading, setIsLoading] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
   const [requests, setRequests] = useState<EquipmentRequest[]>([]);
+  const [requestType, setRequestType] = useState<"demande" | "panne">("demande");
+  const [reason, setReason] = useState("");
 
-  async function openPanel() {
+  async function openPanel(type: "demande" | "panne" = "demande") {
+    setRequestType(type);
     setIsOpen(true);
     setMessage("");
+    setReason("");
+    setSelectedId(null);
     setIsLoading(true);
     try {
-      const response = await fetch("/backend/api/equipment");
+      const response = await fetch(`/backend/api/equipment?type=${type}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Impossible de charger les équipements.");
       setEquipment(data);
@@ -50,12 +55,22 @@ export default function EquipmentRequestPanel() {
       const response = await fetch("/backend/api/equipment-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: selectedId }),
+        body: JSON.stringify({
+          productId: selectedId,
+          requestType,
+          reason: requestType === "panne" ? reason : undefined,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Impossible d'envoyer la demande.");
-      setMessage("Votre demande a été envoyée et est en attente de validation.");
+
+      setMessage(
+        requestType === "panne"
+          ? "Votre déclaration de panne a été enregistrée et sera traitée prochainement."
+          : "Votre demande a été envoyée et est en attente de validation."
+      );
       setSelectedId(null);
+      setReason("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
     } finally {
@@ -85,13 +100,16 @@ export default function EquipmentRequestPanel() {
         <div>
           <p className="text-sm font-medium text-teal-700">Ressources disponibles</p>
           <h2 className="mt-1 text-xl font-semibold text-slate-900">Besoin d&apos;un équipement ?</h2>
-          <p className="mt-1 text-sm text-slate-500">Consultez le matériel disponible et soumettez votre demande.</p>
+          <p className="mt-1 text-sm text-slate-500">Consultez le matériel disponible, déclarez une panne ou soumettez votre demande.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={openResponses} className="rounded-lg border border-teal-600 px-4 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50">
             Voir mes réponses
           </button>
-          <button type="button" onClick={openPanel} className="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">
+          <button type="button" onClick={() => openPanel("panne")} className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 hover:bg-amber-100">
+            Déclarer une panne
+          </button>
+          <button type="button" onClick={() => openPanel("demande")} className="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">
             Demander un équipement
           </button>
         </div>
@@ -124,11 +142,26 @@ export default function EquipmentRequestPanel() {
       {isOpen && (
         <div className="mt-6 border-t border-slate-100 pt-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">Équipements disponibles</h3>
+            <h3 className="font-semibold text-slate-900">
+              {requestType === "panne" ? "Déclaration de panne" : "Équipements disponibles"}
+            </h3>
             <button type="button" onClick={() => setIsOpen(false)} className="text-sm text-slate-500 hover:text-slate-900">Fermer</button>
           </div>
+
+          {requestType === "panne" && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              Seuls les produits acceptés par l’administrateur peuvent être déclarés en panne.
+            </div>
+          )}
+
           {isLoading && equipment.length === 0 ? <p className="text-sm text-slate-500">Chargement...</p> : null}
-          {!isLoading && equipment.length === 0 ? <p className="text-sm text-slate-500">Aucun équipement disponible pour le moment.</p> : null}
+          {!isLoading && equipment.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              {requestType === "panne"
+                ? "Aucun produit accepté par l’administrateur pour le moment."
+                : "Aucun équipement disponible pour le moment."}
+            </p>
+          ) : null}
           <div className="grid gap-3 md:grid-cols-2">
             {equipment.map((item) => (
               <label key={item.id} className={`cursor-pointer rounded-xl border p-4 transition ${selectedId === item.id ? "border-teal-500 bg-teal-50" : "border-slate-200 hover:border-teal-300"}`}>
@@ -144,8 +177,24 @@ export default function EquipmentRequestPanel() {
               </label>
             ))}
           </div>
-          <button type="button" disabled={!selectedId || isLoading} onClick={submitRequest} className="mt-5 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-slate-700">
-            Envoyer la demande
+
+          {requestType === "panne" && (
+            <div className="mt-5">
+              <label className="block text-sm font-medium text-slate-700">
+                Détail de la panne
+                <textarea
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  rows={4}
+                  placeholder="Exemple : écran cassé, clavier non réactif, batterie ne charge plus..."
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-teal-500"
+                />
+              </label>
+            </div>
+          )}
+
+          <button type="button" disabled={!selectedId || isLoading || (requestType === "panne" && !reason.trim())} onClick={submitRequest} className="mt-5 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-slate-700">
+            {requestType === "panne" ? "Déclarer la panne" : "Envoyer la demande"}
           </button>
           {message ? <p className="mt-3 text-sm text-slate-600" role="status">{message}</p> : null}
         </div>
