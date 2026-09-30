@@ -10,7 +10,7 @@ export default function DeleteProductButton({ productId }: { productId: number }
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function handleDelete() {
-    if (!confirm("Supprimer ce produit ?")) return;
+    if (!confirm("Attention : cette action supprimera aussi toutes les demandes et déclarations de panne liées à ce produit. Cette suppression est définitive. Continuer ?")) return;
 
     const id = Number(productId);
     if (!Number.isInteger(id) || id <= 0) {
@@ -21,7 +21,7 @@ export default function DeleteProductButton({ productId }: { productId: number }
     setIsDeleting(true);
 
     try {
-      const res = await axios.delete("/backend/GestionProduit/SupprimerProduit", {
+      const res = await axios.delete<{ deletedRequests: number; deletedFaultReports: number }>("/backend/GestionProduit/SupprimerProduit", {
         data: { productId: id },
       });
 
@@ -29,9 +29,13 @@ export default function DeleteProductButton({ productId }: { productId: number }
         throw new Error("Erreur lors de la suppression.");
       }
 
+      alert(`Produit supprimé. ${res.data.deletedRequests} demande(s) et ${res.data.deletedFaultReports} déclaration(s) supprimées.`);
       router.refresh();
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Erreur inconnue.");
+      const apiError = axios.isAxiosError<{ error?: string }>(error)
+        ? error.response?.data?.error
+        : undefined;
+      alert(apiError || (error instanceof Error ? error.message : "Erreur inconnue."));
     } finally {
       setIsDeleting(false);
     }

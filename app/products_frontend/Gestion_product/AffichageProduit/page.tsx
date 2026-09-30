@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { Pencil, Plus, PackageX } from 'lucide-react';
+import Link from 'next/link';
 import DeleteProductButton from '../SuppimeProduit/DeleteProductButton';
 
 
@@ -67,7 +68,13 @@ export default async function ProductsPage() {
                         {product.id}
                       </td>
                       <td className="py-4 px-6 font-semibold text-slate-900">
-                        {product.marque}
+                        <Link
+                          href={`/products_frontend/Gestion_product/AffichageProduit/${product.id}`}
+                          className="hover:text-teal-700 hover:underline"
+                          title={`Voir les détails de ${product.marque}`}
+                        >
+                          {product.marque}
+                        </Link>
                       </td>
                       <td className="py-4 px-6 text-slate-600">
                         {product.bureau}

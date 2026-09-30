@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const prix = Number(body.prix);
     const stock = Number(body.stock);
     const product = await prisma.product.create({
-      data: { marque, bureau, prix, stock },
+      data: { marque, bureau, prix, stock, initialStock: stock },
     });
 
     return Response.json(product, { status: 201 });

@@ -1,204 +1,156 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { PackagePlus } from "lucide-react";
 
-type Equipment = {
-  id: number;
-  name: string;
-  type: string;
-  description: string;
-  condition: string;
-};
-
+type Equipment = { id: number; name: string; type: string; available: boolean };
 type EquipmentRequest = {
   id: number;
   status: string;
   createdAt: string;
   product: { marque: string; bureau: string };
 };
+type RequestFilter = "Toutes" | "En attente" | "Acceptée" | "Refusée";
+
+const requestFilters: RequestFilter[] = ["Toutes", "En attente", "Acceptée", "Refusée"];
 
 export default function EquipmentRequestPanel() {
-  const [isOpen, setIsOpen] = useState(false);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showResponses, setShowResponses] = useState(false);
   const [requests, setRequests] = useState<EquipmentRequest[]>([]);
-  const [requestType, setRequestType] = useState<"demande" | "panne">("demande");
-  const [reason, setReason] = useState("");
+  const [productId, setProductId] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestFilter, setRequestFilter] = useState<RequestFilter>("Toutes");
 
-  async function openPanel(type: "demande" | "panne" = "demande") {
-    setRequestType(type);
-    setIsOpen(true);
-    setMessage("");
-    setReason("");
-    setSelectedId(null);
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/backend/api/equipment?type=${type}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Impossible de charger les équipements.");
-      setEquipment(data);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
-    } finally {
-      setIsLoading(false);
+  const filteredRequests = requestFilter === "Toutes"
+    ? requests
+    : requests.filter((request) => request.status === requestFilter);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [equipmentResponse, requestsResponse] = await Promise.all([
+          fetch("/backend/api/equipment"),
+          fetch("/backend/api/equipment-requests"),
+        ]);
+        const equipmentData = await equipmentResponse.json();
+        const requestsData = await requestsResponse.json();
+        if (!equipmentResponse.ok) throw new Error(equipmentData.error || "Impossible de charger le matériel.");
+        if (!requestsResponse.ok) throw new Error(requestsData.error || "Impossible de charger vos demandes.");
+        setEquipment(equipmentData);
+        setRequests(requestsData);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Impossible de charger les données.");
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }
 
-  async function submitRequest() {
-    if (!selectedId) return;
-    setIsLoading(true);
+    void loadData();
+  }, []);
+
+  async function submitRequest(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!productId) return;
+
+    setIsSubmitting(true);
     setMessage("");
     try {
       const response = await fetch("/backend/api/equipment-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: selectedId,
-          requestType,
-          reason: requestType === "panne" ? reason : undefined,
-        }),
+        body: JSON.stringify({ productId: Number(productId) }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Impossible d'envoyer la demande.");
-
-      setMessage(
-        requestType === "panne"
-          ? "Votre déclaration de panne a été enregistrée et sera traitée prochainement."
-          : "Votre demande a été envoyée et est en attente de validation."
-      );
-      setSelectedId(null);
-      setReason("");
+      const selectedEquipment = equipment.find((item) => item.id === Number(productId));
+      setRequests((current) => [{
+        ...data,
+        product: { marque: selectedEquipment?.name ?? "", bureau: selectedEquipment?.type ?? "" },
+      }, ...current]);
+      setProductId("");
+      setMessage("Votre demande a été envoyée pour validation.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
+      setMessage(error instanceof Error ? error.message : "Impossible d'envoyer la demande.");
     } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function openResponses() {
-    setShowResponses(true);
-    setMessage("");
-    setIsLoading(true);
-    try {
-      const response = await fetch("/backend/api/equipment-requests");
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Impossible de charger vos réponses.");
-      setRequests(data);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
-    } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-teal-700">Ressources disponibles</p>
-          <h2 className="mt-1 text-xl font-semibold text-slate-900">Besoin d&apos;un équipement ?</h2>
-          <p className="mt-1 text-sm text-slate-500">Consultez le matériel disponible, déclarez une panne ou soumettez votre demande.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={openResponses} className="rounded-lg border border-teal-600 px-4 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50">
-            Voir mes réponses
-          </button>
-          <button type="button" onClick={() => openPanel("panne")} className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 hover:bg-amber-100">
-            Déclarer une panne
-          </button>
-          <button type="button" onClick={() => openPanel("demande")} className="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">
-            Demander un équipement
-          </button>
-        </div>
-      </div>
-
-      {showResponses && (
-        <div className="mt-6 border-t border-slate-100 pt-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">Réponses de l&apos;administrateur</h3>
-            <button type="button" onClick={() => setShowResponses(false)} className="text-sm text-slate-500 hover:text-slate-900">Fermer</button>
+    <div className="space-y-6">
+      <section className="rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-md bg-teal-100 text-teal-800">
+            <PackagePlus size={19} aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase text-teal-800">Nouvelle demande</p>
+            <h2 className="mt-0.5 text-lg font-semibold text-slate-950">Demander un équipement</h2>
           </div>
-          {isLoading && requests.length === 0 ? <p className="text-sm text-slate-500">Chargement...</p> : null}
-          {!isLoading && requests.length === 0 ? <p className="text-sm text-slate-500">Vous n&apos;avez encore envoyé aucune demande.</p> : null}
-          <div className="space-y-3">
-            {requests.map((request) => (
-              <div key={request.id} className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-semibold text-slate-900">{request.product.marque}</p>
-                  <p className="text-sm text-slate-500">{request.product.bureau} · Demandé le {new Date(request.createdAt).toLocaleDateString("fr-FR")}</p>
-                </div>
-                <span className={`text-sm font-semibold ${request.status === "Acceptée" ? "text-emerald-600" : request.status === "Refusée" ? "text-rose-600" : "text-amber-600"}`}>
-                  {request.status}
-                </span>
+        </div>
+        <form onSubmit={submitRequest} className="mt-5 space-y-4">
+          <label className="block flex-1 text-sm font-medium text-slate-700">
+            Équipement
+            <select
+              required
+              value={productId}
+              onChange={(event) => setProductId(event.target.value)}
+              className="mt-1.5 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-100"
+            >
+              <option value="">Choisir un équipement</option>
+              {equipment.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.type}){item.available ? "" : " - indisponible"}</option>)}
+            </select>
+          </label>
+          <button
+            type="submit"
+            disabled={isSubmitting || !productId}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-teal-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-900 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? "Envoi..." : "Envoyer la demande"}
+          </button>
+        </form>
+        {!isLoading && equipment.length === 0 ? <p className="mt-3 text-sm text-slate-500">Aucun équipement dans le catalogue.</p> : null}
+        {message ? <p className="mt-3 text-sm text-slate-600" role="status">{message}</p> : null}
+      </section>
+
+      <section className="rounded-xl border border-gray-200 p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase text-slate-500">Suivi</p>
+            <h2 className="mt-0.5 text-lg font-semibold text-slate-950">Mes demandes</h2>
+          </div>
+          <div className="flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1" aria-label="Filtrer les demandes par statut">
+            {requestFilters.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                aria-pressed={requestFilter === filter}
+                onClick={() => setRequestFilter(filter)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${requestFilter === filter ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        </div>
+        {isLoading ? <p className="mt-4 text-sm text-slate-500">Chargement...</p> : null}
+        {!isLoading && requests.length === 0 ? <p className="mt-4 text-sm text-slate-500">Aucune demande envoyée.</p> : null}
+        {!isLoading && requests.length > 0 && filteredRequests.length === 0 ? <p className="mt-4 text-sm text-slate-500">Aucune demande avec ce statut.</p> : null}
+        <ul className="mt-3 divide-y divide-slate-100">
+          {filteredRequests.map((request) => (
+            <li key={request.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium text-slate-900">{request.product.marque} ({request.product.bureau})</p>
+                <p className="text-xs text-slate-500">Demandé le {new Date(request.createdAt).toLocaleDateString("fr-FR")}</p>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isOpen && (
-        <div className="mt-6 border-t border-slate-100 pt-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">
-              {requestType === "panne" ? "Déclaration de panne" : "Équipements disponibles"}
-            </h3>
-            <button type="button" onClick={() => setIsOpen(false)} className="text-sm text-slate-500 hover:text-slate-900">Fermer</button>
-          </div>
-
-          {requestType === "panne" && (
-            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              Seuls les équipements acceptés par l’administrateur peuvent être déclarés en panne.
-            </div>
-          )}
-
-          {isLoading && equipment.length === 0 ? <p className="text-sm text-slate-500">Chargement...</p> : null}
-          {!isLoading && equipment.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              {requestType === "panne"
-                ? "Aucun équipement accepté par l’administrateur pour le moment."
-                : "Aucun équipement disponible pour le moment."}
-            </p>
-          ) : null}
-          <div className="grid gap-3 md:grid-cols-2">
-            {equipment.map((item) => (
-              <label key={item.id} className={`cursor-pointer rounded-xl border p-4 transition ${selectedId === item.id ? "border-teal-500 bg-teal-50" : "border-slate-200 hover:border-teal-300"}`}>
-                <div className="flex gap-3">
-                  <input type="radio" name="equipment" value={item.id} checked={selectedId === item.id} onChange={() => setSelectedId(item.id)} className="mt-1 accent-teal-600" />
-                  <div className="min-w-0 text-sm">
-                    <p className="font-semibold text-slate-900">{item.name}</p>
-                    <p className="mt-1 text-teal-700">{item.type} · État : {item.condition}</p>
-                    <p className="mt-2 text-slate-500">{item.description}</p>
-                    <p className="mt-2 font-medium text-emerald-600">Disponible</p>
-                  </div>
-                </div>
-              </label>
-            ))}
-          </div>
-
-          {requestType === "panne" && (
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-slate-700">
-                Détail de la panne
-                <textarea
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                  rows={4}
-                  placeholder="Exemple : écran cassé, clavier non réactif, batterie ne charge plus..."
-                  className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-teal-500"
-                />
-              </label>
-            </div>
-          )}
-
-          <button type="button" disabled={!selectedId || isLoading || (requestType === "panne" && !reason.trim())} onClick={submitRequest} className="mt-5 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 hover:bg-slate-700">
-            {requestType === "panne" ? "Déclarer la panne" : "Envoyer la demande"}
-          </button>
-          {message ? <p className="mt-3 text-sm text-slate-600" role="status">{message}</p> : null}
-        </div>
-      )}
-    </section>
+              <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${request.status === "Acceptée" ? "bg-emerald-100 text-emerald-800" : request.status === "Refusée" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"}`}>
+                {request.status}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
   );
 }

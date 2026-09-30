@@ -33,6 +33,11 @@ export async function POST(request: Request) {
       return Response.json({ error: "Choisissez un équipement et décrivez la panne." }, { status: 400 });
     }
 
+    const product = await prisma.product.findUnique({ where: { id: productId }, select: { id: true } });
+    if (!product) {
+      return Response.json({ error: "Cet équipement n’est plus disponible." }, { status: 410 });
+    }
+
     const acceptedRequest = await prisma.equipmentRequest.findFirst({
       where: { userId: user.id, productId, status: "Acceptée" },
       select: { id: true },

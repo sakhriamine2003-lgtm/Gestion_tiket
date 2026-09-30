@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import axios from "axios";
 import api from "@/lib/axios";
 
 type Equipment = { id: number; name: string; type: string };
+type EquipmentRequest = { status: string };
 type FaultReportStatus = "a_faire" | "en_cours" | "termine";
 type FaultReport = {
   id: number;
@@ -27,6 +29,7 @@ const badgeStyles: Record<FaultReportStatus, string> = {
 export default function FaultReportPanel() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [reports, setReports] = useState<FaultReport[]>([]);
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [productId, setProductId] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -36,12 +39,14 @@ export default function FaultReportPanel() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [equipmentResponse, reportsResponse] = await Promise.all([
+        const [equipmentResponse, reportsResponse, requestsResponse] = await Promise.all([
           api.get<Equipment[]>("/backend/api/equipment?type=panne"),
           api.get<FaultReport[]>("/backend/api/fault-reports"),
+          api.get<EquipmentRequest[]>("/backend/api/equipment-requests"),
         ]);
         setEquipment(equipmentResponse.data);
         setReports(reportsResponse.data);
+        setHasPendingRequest(requestsResponse.data.some((request) => request.status === "En attente"));
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "Impossible de charger les déclarations.");
       } finally {
@@ -67,7 +72,10 @@ export default function FaultReportPanel() {
       setDescription("");
       setMessage("Votre déclaration a été enregistrée.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Impossible d'enregistrer la déclaration.");
+      const apiError = axios.isAxiosError<{ error?: string }>(error)
+        ? error.response?.data?.error
+        : undefined;
+      setMessage(apiError || (error instanceof Error ? error.message : "Impossible d'enregistrer la déclaration."));
     } finally {
       setIsSubmitting(false);
     }
@@ -110,7 +118,13 @@ export default function FaultReportPanel() {
             {isSubmitting ? "Envoi..." : "Déclarer"}
           </button>
         </form>
-        {equipment.length === 0 && !isLoading ? <p className="mt-3 text-sm text-slate-500">Aucun équipement accepté ne peut être sélectionné.</p> : null}
+        {equipment.length === 0 && !isLoading ? (
+          <p className="mt-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900" role="status">
+            {hasPendingRequest
+              ? "Votre demande est en attente de validation. Aucun équipement n’est disponible pour déclarer une panne pour le moment."
+              : "Aucun équipement accepté n’est disponible pour déclarer une panne pour le moment."}
+          </p>
+        ) : null}
         {message ? <p className="mt-3 text-sm text-slate-600" role="status">{message}</p> : null}
       </section>
 
