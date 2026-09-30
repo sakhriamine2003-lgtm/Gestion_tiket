@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth";
+import { sendEmails } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,7 +17,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   try {
     const updated = await prisma.$transaction(async (transaction) => {
-      const equipmentRequest = await transaction.equipmentRequest.findUnique({ where: { id: requestId } });
+      const equipmentRequest = await transaction.equipmentRequest.findUnique({
+        where: { id: requestId },
+        include: {
+          user: { select: { name: true, email: true } },
+          product: { select: { marque: true, bureau: true } },
+        },
+      });
       if (!equipmentRequest || !["En attente", "Panne signalée"].includes(equipmentRequest.status)) {
         throw new Error("REQUEST_NOT_PENDING");
       }
@@ -35,9 +42,27 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           data: { equipmentCount: { increment: 1 } },
         });
       }
-      return transaction.equipmentRequest.update({ where: { id: requestId }, data: { status } });
+      const updatedRequest = await transaction.equipmentRequest.update({ where: { id: requestId }, data: { status } });
+      return { updatedRequest, equipmentRequest };
     });
-    return Response.json(updated);
+
+    const admins = await prisma.user.findMany({ where: { user_role: "admin" }, select: { email: true } });
+    const decision = status === "Acceptée" ? "acceptée" : "refusée";
+    const productLabel = `${updated.equipmentRequest.product.marque} (${updated.equipmentRequest.product.bureau})`;
+    await sendEmails([
+      {
+        to: updated.equipmentRequest.user.email,
+        subject: `Votre demande a été ${decision}`,
+        text: `Bonjour ${updated.equipmentRequest.user.name},\n\nVotre demande concernant ${productLabel} a été ${decision} par l’administrateur.`,
+      },
+      ...admins.map((admin) => ({
+        to: admin.email,
+        subject: `Demande ${decision}`,
+        text: `La demande de ${updated.equipmentRequest.user.name} concernant ${productLabel} a été ${decision}.`,
+      })),
+    ]);
+
+    return Response.json(updated.updatedRequest);
   } catch (error) {
     if (error instanceof Error && error.message === "REQUEST_NOT_PENDING") {
       return Response.json({ error: "Cette demande a déjà été traitée." }, { status: 409 });

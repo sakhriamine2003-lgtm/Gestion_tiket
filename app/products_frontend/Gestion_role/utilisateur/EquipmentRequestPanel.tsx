@@ -150,7 +150,7 @@ export default function EquipmentRequestPanel() {
 
           {requestType === "panne" && (
             <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              Seuls les produits acceptés par l’administrateur peuvent être déclarés en panne.
+              Seuls les équipements acceptés par l’administrateur peuvent être déclarés en panne.
             </div>
           )}
 
@@ -158,7 +158,7 @@ export default function EquipmentRequestPanel() {
           {!isLoading && equipment.length === 0 ? (
             <p className="text-sm text-slate-500">
               {requestType === "panne"
-                ? "Aucun produit accepté par l’administrateur pour le moment."
+                ? "Aucun équipement accepté par l’administrateur pour le moment."
                 : "Aucun équipement disponible pour le moment."}
             </p>
           ) : null}

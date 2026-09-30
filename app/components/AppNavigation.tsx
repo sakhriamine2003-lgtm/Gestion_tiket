@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Menu, Package, X } from "lucide-react";
+import { LayoutDashboard, Menu, Package, Wrench, X } from "lucide-react";
 import { useState } from "react";
 import type { UserRole } from "@/lib/auth";
 import { LogoutButton } from "./LogoutButton";
@@ -20,10 +20,15 @@ export function AppNavigation({ user }: { user: { name: string; user_role: UserR
 
   const links = [
     { href: dashboardPath, label: "Tableau de bord", icon: LayoutDashboard },
-    ...(user.user_role === "admin"
-      ? [{ href: "/products_frontend/Gestion_product/AffichageProduit", label: "Gestion du stock", icon: Package }]
-      : []),
   ];
+  const materialLinks = user.user_role === "admin"
+    ? [
+        { href: `${dashboardPath}/demandes-equipement`, label: "Demandes d'équipement", icon: Package },
+        { href: `${dashboardPath}/declarations-pannes`, label: "Déclarations de pannes", icon: Wrench },
+      ]
+    : user.user_role === "utilisateur"
+      ? [{ href: `${dashboardPath}/declarations-pannes`, label: "Mes déclarations de pannes", icon: Wrench }]
+      : [];
 
   return (
     <header className="border-b border-slate-200 bg-white">
@@ -41,6 +46,23 @@ export function AppNavigation({ user }: { user: { name: string; user_role: UserR
             const active = pathname === href;
             return <Link key={href} href={href} className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${active ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}><Icon size={17} aria-hidden="true" />{label}</Link>;
           })}
+          {materialLinks.length > 0 ? (
+            <>
+              <span className="mx-1 h-6 w-px bg-slate-200" />
+              <div className="flex items-center gap-1">
+                {user.user_role === "admin" ? <span className="px-2 text-[10px] font-semibold tracking-wide text-slate-400">GESTION MATÉRIEL</span> : null}
+                {materialLinks.map(({ href, label, icon: Icon }) => {
+                  const active = pathname === href;
+                  return <Link key={label} href={href} className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${active ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}><Icon size={17} aria-hidden="true" />{label}</Link>;
+                })}
+              </div>
+            </>
+          ) : null}
+          {user.user_role === "admin" ? (
+            <Link href="/products_frontend/Gestion_product/AffichageProduit" className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+              <Package size={17} aria-hidden="true" />Gestion du stock
+            </Link>
+          ) : null}
           <span className="mx-2 h-6 w-px bg-slate-200" />
           <span className="text-sm text-slate-500">{user.name}</span>
           <LogoutButton />
@@ -49,6 +71,13 @@ export function AppNavigation({ user }: { user: { name: string; user_role: UserR
 
       {isOpen && <nav className="border-t border-slate-100 px-4 py-3 md:hidden" aria-label="Navigation mobile">
         {links.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon size={18} aria-hidden="true" />{label}</Link>)}
+        {materialLinks.length > 0 ? (
+          <>
+            {user.user_role === "admin" ? <p className="px-3 pb-1 pt-4 text-[10px] font-semibold tracking-wide text-slate-400">GESTION MATÉRIEL</p> : null}
+            {materialLinks.map(({ href, label, icon: Icon }) => <Link key={label} href={href} onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon size={18} aria-hidden="true" />{label}</Link>)}
+          </>
+        ) : null}
+        {user.user_role === "admin" ? <Link href="/products_frontend/Gestion_product/AffichageProduit" onClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Package size={18} aria-hidden="true" />Gestion du stock</Link> : null}
         <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-3"><span className="text-sm text-slate-500">{user.name}</span><LogoutButton /></div>
       </nav>}
     </header>

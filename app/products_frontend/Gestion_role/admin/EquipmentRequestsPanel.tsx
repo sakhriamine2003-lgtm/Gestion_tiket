@@ -6,6 +6,7 @@ type EquipmentRequest = {
   id: number;
   status: string;
   createdAt: string;
+  reason: string | null;
   user: { name: string; email: string };
   product: { marque: string; bureau: string };
 };
@@ -34,7 +35,9 @@ export default function EquipmentRequestsPanel({ initialRequests, initialEquipme
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-slate-900">Demandes d&apos;équipement</h2>
         {requests.length === 0 ? <p className="mt-4 text-sm text-slate-500">Aucune demande reçue.</p> : <div className="mt-4 space-y-3">{requests.map((request) => {
-          const isPanne = request.status === "Panne signalée";
+          const isPanne = request.status === "Panne signalée" || Boolean(request.reason?.trim());
+          const problemDetail = request.reason?.trim() || (isPanne ? "Aucun détail supplémentaire n’a été fourni." : "");
+
           return (
             <div key={request.id} className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
               <div>
@@ -45,6 +48,11 @@ export default function EquipmentRequestsPanel({ initialRequests, initialEquipme
                 <p className="text-sm text-slate-600">{request.user.name} · {request.user.email}</p>
                 <p className="text-xs text-slate-400">{isPanne ? "Déclarée le" : "Demandé le"} {new Date(request.createdAt).toLocaleDateString("fr-FR")}</p>
               </div>
+              {isPanne ? (
+                <p className="max-w-2xl rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  <span className="font-semibold">Problème signalé :</span> {problemDetail}
+                </p>
+              ) : null}
               <div className="flex items-center gap-2">
                 {request.status === "En attente" || request.status === "Panne signalée" ? (
                   <>

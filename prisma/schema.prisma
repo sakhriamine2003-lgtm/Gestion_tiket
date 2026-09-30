@@ -25,6 +25,7 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   equipmentRequests EquipmentRequest[]
+  faultReports FaultReport[]
 }
 
 model User {
@@ -37,6 +38,7 @@ model User {
   createdAt DateTime @default(now())
   equipmentRequests EquipmentRequest[]
   assignedEquipment Equipment[] @relation("AssignedEquipment")
+  faultReports FaultReport[]
 }
 
 model Equipment {
@@ -56,6 +58,7 @@ model Equipment {
 model EquipmentRequest {
   id          Int       @id @default(autoincrement())
   status      String    @default("En attente")
+  reason      String?
   createdAt   DateTime  @default(now())
   userId      Int
   equipmentId Int?
@@ -66,5 +69,20 @@ model EquipmentRequest {
 
   @@index([userId])
   @@index([equipmentId])
+  @@index([productId])
+}
+
+model FaultReport {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  description String
+  status      String   @default("a_faire") @map("statut")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
   @@index([productId])
 }

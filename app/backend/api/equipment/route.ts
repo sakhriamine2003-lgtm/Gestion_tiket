@@ -15,8 +15,15 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
     });
 
+    const uniqueProducts = new Map<number, (typeof acceptedRequests)[number]>();
+    for (const acceptedRequest of acceptedRequests) {
+      if (!uniqueProducts.has(acceptedRequest.productId)) {
+        uniqueProducts.set(acceptedRequest.productId, acceptedRequest);
+      }
+    }
+
     return Response.json(
-      acceptedRequests.map((request) => ({
+      [...uniqueProducts.values()].map((request) => ({
         id: request.product.id,
         name: request.product.marque,
         type: request.product.bureau,
