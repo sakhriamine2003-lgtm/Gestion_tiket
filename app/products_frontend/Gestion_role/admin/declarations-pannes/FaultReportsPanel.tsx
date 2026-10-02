@@ -9,6 +9,7 @@ type FaultReport = {
   description: string;
   status: FaultReportStatus;
   createdAt: string;
+  emailSent?: boolean;
   user: { name: string; email: string };
   product: { marque: string; bureau: string };
 };
@@ -34,7 +35,7 @@ export default function FaultReportsPanel() {
   useEffect(() => {
     async function loadReports() {
       try {
-        const response = await api.get<FaultReport[]>("/backend/api/fault-reports");
+        const response = await api.get<FaultReport[]>("/fault-reports");
         setReports(response.data);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "Impossible de charger les déclarations.");
@@ -50,9 +51,11 @@ export default function FaultReportsPanel() {
     setUpdatingId(id);
     setMessage("");
     try {
-      const response = await api.patch<FaultReport>(`/backend/api/fault-reports/${id}`, { status });
+      const response = await api.patch<FaultReport>(`/fault-reports/${id}`, { status });
       setReports((current) => current.map((report) => report.id === id ? response.data : report));
-      setMessage("Statut mis à jour.");
+      setMessage(response.data.emailSent === false
+        ? "Statut mis à jour, mais l'email n'a pas pu être envoyé. Vérifiez la configuration SMTP."
+        : "Statut mis à jour et email envoyé.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Impossible de modifier le statut.");
     } finally {

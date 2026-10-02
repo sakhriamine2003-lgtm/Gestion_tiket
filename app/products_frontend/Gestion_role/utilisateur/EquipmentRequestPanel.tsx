@@ -99,7 +99,7 @@ export default function EquipmentRequestPanel() {
               className="mt-1.5 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-100"
             >
               <option value="">Choisir un équipement</option>
-              {equipment.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.type}){item.available ? "" : " - indisponible"}</option>)}
+              {equipment.filter((item) => item.available).map((item) => <option key={item.id} value={item.id}>{item.name} ({item.type})</option>)}
             </select>
           </label>
           <button
@@ -110,7 +110,7 @@ export default function EquipmentRequestPanel() {
             {isSubmitting ? "Envoi..." : "Envoyer la demande"}
           </button>
         </form>
-        {!isLoading && equipment.length === 0 ? <p className="mt-3 text-sm text-slate-500">Aucun équipement dans le catalogue.</p> : null}
+        {!isLoading && equipment.every((item) => !item.available) ? <p className="mt-3 text-sm text-slate-500">Aucun équipement disponible dans le stock.</p> : null}
         {message ? <p className="mt-3 text-sm text-slate-600" role="status">{message}</p> : null}
       </section>
 

@@ -17,56 +17,57 @@ model Ticket {
 }
 
 model Product {
-  id        Int      @id @default(autoincrement())
-  marque    String
-  bureau    String
-  prix      Float    @default(0.0)
-  stock     Int      @default(0)
-  initialStock Int   @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                Int                @id @default(autoincrement())
+  marque            String
+  bureau            String
+  prix              Float              @default(0.0)
+  stock             Int                @default(0)
+  initialStock      Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   equipmentRequests EquipmentRequest[]
-  faultReports FaultReport[]
+  faultReports      FaultReport[]
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  user_role String
-  equipmentCount Int @default(0)
-  createdAt DateTime @default(now())
+  id                Int                @id @default(autoincrement())
+  name              String
+  email             String             @unique
+  password          String
+  user_role         String
+  equipmentCount    Int                @default(0)
+  createdAt         DateTime           @default(now())
   equipmentRequests EquipmentRequest[]
-  assignedEquipment Equipment[] @relation("AssignedEquipment")
-  faultReports FaultReport[]
+  assignedEquipment Equipment[]        @relation("AssignedEquipment")
+  faultReports      FaultReport[]
+  notifications     Notification[]
 }
 
 model Equipment {
-  id          Int      @id @default(autoincrement())
-  name        String
-  type        String
-  description String
-  condition   String
-  available   Boolean  @default(true)
+  id           Int                @id @default(autoincrement())
+  name         String
+  type         String
+  description  String
+  condition    String
+  available    Boolean            @default(true)
   assignedToId Int?
-  assignedTo  User?    @relation("AssignedEquipment", fields: [assignedToId], references: [id])
-  requests    EquipmentRequest[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  assignedTo   User?              @relation("AssignedEquipment", fields: [assignedToId], references: [id])
+  requests     EquipmentRequest[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 }
 
 model EquipmentRequest {
-  id          Int       @id @default(autoincrement())
-  status      String    @default("En attente")
+  id          Int        @id @default(autoincrement())
+  status      String     @default("En attente")
   reason      String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime   @default(now())
   userId      Int
   equipmentId Int?
   productId   Int
-  user        User      @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
   equipment   Equipment? @relation(fields: [equipmentId], references: [id])
-  product     Product   @relation(fields: [productId], references: [id])
+  product     Product    @relation(fields: [productId], references: [id])
 
   @@index([userId])
   @@index([equipmentId])
@@ -86,4 +87,14 @@ model FaultReport {
 
   @@index([userId])
   @@index([productId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

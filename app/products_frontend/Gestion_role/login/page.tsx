@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
-import api from "@/app/connexions/axios";
+import api from "@/lib/axios";
 
 export default function LoginPage() {
   const router = useRouter();

@@ -40,9 +40,9 @@ export default function FaultReportPanel() {
     async function loadData() {
       try {
         const [equipmentResponse, reportsResponse, requestsResponse] = await Promise.all([
-          api.get<Equipment[]>("/backend/api/equipment?type=panne"),
-          api.get<FaultReport[]>("/backend/api/fault-reports"),
-          api.get<EquipmentRequest[]>("/backend/api/equipment-requests"),
+          api.get<Equipment[]>("/equipment?type=panne"),
+          api.get<FaultReport[]>("/fault-reports"),
+          api.get<EquipmentRequest[]>("/equipment-requests"),
         ]);
         setEquipment(equipmentResponse.data);
         setReports(reportsResponse.data);
@@ -64,7 +64,7 @@ export default function FaultReportPanel() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      const response = await api.post<FaultReport>("/backend/api/fault-reports", {
+      const response = await api.post<FaultReport>("/fault-reports", {
         productId: Number(productId),
         description: description.trim(),
       });

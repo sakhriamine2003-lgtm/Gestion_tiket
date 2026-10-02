@@ -1,7 +1,13 @@
 import { getSession } from "@/lib/auth";
+import { sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
 const allowedStatuses = ["a_faire", "en_cours", "termine"] as const;
+const statusLabels: Record<(typeof allowedStatuses)[number], string> = {
+  a_faire: "À faire",
+  en_cours: "En cours",
+  termine: "Terminé",
+};
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSession();
@@ -18,17 +24,65 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return Response.json({ error: "Statut invalide." }, { status: 400 });
     }
 
-    const report = await prisma.faultReport.update({
-      where: { id: reportId },
-      data: { status: body.status },
-      include: {
-        user: { select: { id: true, name: true, email: true } },
-        product: { select: { id: true, marque: true, bureau: true } },
-      },
+    const result = await prisma.$transaction(async (transaction) => {
+      const currentReport = await transaction.faultReport.findUnique({
+        where: { id: reportId },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          product: { select: { id: true, marque: true, bureau: true } },
+        },
+      });
+
+      if (!currentReport) {
+        throw new Error("REPORT_NOT_FOUND");
+      }
+
+      if (currentReport.status === body.status) {
+        return { report: currentReport, changed: false };
+      }
+
+      const report = await transaction.faultReport.update({
+        where: { id: reportId },
+        data: { status: body.status },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          product: { select: { id: true, marque: true, bureau: true } },
+        },
+      });
+      const oldStatus = statusLabels[currentReport.status as (typeof allowedStatuses)[number]] ?? currentReport.status;
+      const newStatus = statusLabels[body.status as (typeof allowedStatuses)[number]];
+
+      await transaction.notification.create({
+        data: {
+          userId: currentReport.userId,
+          message: `Le statut de votre déclaration de panne a été modifié. Ancien statut : ${oldStatus}. Nouveau statut : ${newStatus}. Référence de la panne : ${report.id}. Date : ${report.updatedAt.toLocaleString("fr-FR")}.`,
+        },
+      });
+
+      return { report, changed: true, oldStatus, newStatus };
     });
 
-    return Response.json(report);
+    if (!result.changed) {
+      return Response.json({ ...result.report, unchanged: true, message: "Le statut est déjà identique." });
+    }
+
+    const emailSent = await sendEmail({
+      to: result.report.user.email,
+      subject: "Mise à jour de votre déclaration de panne",
+      text: `Bonjour ${result.report.user.name},\n\nLe statut de votre déclaration de panne a été modifié.\n\nAncien statut : ${result.oldStatus}\nNouveau statut : ${result.newStatus}\nRéférence de la panne : ${result.report.id}\nDate : ${result.report.updatedAt.toLocaleString("fr-FR")}\n\nMerci.`,
+    });
+
+    return Response.json({
+      ...result.report,
+      emailSent,
+      message: emailSent
+        ? "Statut mis à jour et email envoyé."
+        : "Statut mis à jour, mais l'email n'a pas pu être envoyé.",
+    });
   } catch (error) {
+    if (error instanceof Error && error.message === "REPORT_NOT_FOUND") {
+      return Response.json({ error: "Déclaration introuvable." }, { status: 404 });
+    }
     if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
       return Response.json({ error: "Déclaration introuvable." }, { status: 404 });
     }

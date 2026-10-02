@@ -38,6 +38,10 @@ export async function POST(request: Request) {
       );
     }
 
+    if (requestType === "demande" && product.stock <= 0) {
+      return Response.json({ error: "Cet équipement n'est plus disponible." }, { status: 409 });
+    }
+
     if (requestType === "panne") {
       const acceptedRequest = await prisma.equipmentRequest.findFirst({
         where: { userId: user.id, productId: product.id, status: "Acceptée" },
