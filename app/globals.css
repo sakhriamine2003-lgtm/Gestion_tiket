@@ -24,3 +24,33 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 } */
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .fault-ticket-overlay,
+  .fault-ticket-overlay * {
+    visibility: visible !important;
+  }
+
+  .fault-ticket-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .fault-ticket-dialog {
+    width: 100% !important;
+    max-width: none !important;
+    box-shadow: none !important;
+  }
+
+  .fault-ticket-actions {
+    display: none !important;
+  }
+}

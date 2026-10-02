@@ -1,13 +1,16 @@
 import nodemailer from "nodemailer";
+import type { SendMailOptions } from "nodemailer";
 
 type EmailMessage = {
   to: string | string[];
   subject: string;
   text: string;
+  html?: string;
+  attachments?: SendMailOptions["attachments"];
 };
 
 /** Sends transactional e-mails through the configured SMTP server. */
-export async function sendEmail({ to, subject, text }: EmailMessage) {
+export async function sendEmail({ to, subject, text, html, attachments }: EmailMessage) {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT);
   const user = process.env.SMTP_USER;
@@ -27,7 +30,7 @@ export async function sendEmail({ to, subject, text }: EmailMessage) {
       auth: { user, pass: password },
     });
 
-    const result = await transporter.sendMail({ to, from, subject, text });
+    const result = await transporter.sendMail({ to, from, subject, text, html, attachments });
     console.info("Email SMTP envoyé :", { to, messageId: result.messageId });
     return true;
   } catch (error) {
