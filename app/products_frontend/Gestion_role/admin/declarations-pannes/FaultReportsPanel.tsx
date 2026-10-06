@@ -21,7 +21,7 @@ type FaultReport = {
 const statuses: FaultReportStatus[] = ["a_faire", "en_cours", "termine"];
 const labels: Record<FaultReportStatus, string> = {
   a_faire: "À faire",
-  en_cours: "En cours",
+  en_cours: "En cours ",
   termine: "Terminé",
 };
 const badgeStyles: Record<FaultReportStatus, string> = {
