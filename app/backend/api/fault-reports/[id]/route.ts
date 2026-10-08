@@ -24,15 +24,65 @@ function escapeHtml(value: string) {
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSession();
   if (!user) return Response.json({ error: "Authentification requise." }, { status: 401 });
-  if (user.user_role !== "admin") {
-    return Response.json({ error: "Accès réservé aux administrateurs." }, { status: 403 });
-  }
 
   const reportId = Number((await params).id);
 
   try {
     const body = await request.json();
-    if (!Number.isInteger(reportId) || reportId <= 0 || !allowedStatuses.includes(body.status)) {
+    if (!Number.isInteger(reportId) || reportId <= 0 || !body || typeof body !== "object") {
+      return Response.json({ error: "Déclaration ou données invalides." }, { status: 400 });
+    }
+
+    if (user.user_role === "utilisateur") {
+      const ownedReport = await prisma.faultReport.findFirst({
+        where: { id: reportId, userId: user.id },
+        select: { id: true },
+      });
+      if (!ownedReport) return Response.json({ error: "Déclaration introuvable." }, { status: 404 });
+
+      const productId = Number(body.productId);
+      const description = typeof body.description === "string" ? body.description.trim() : "";
+      if (!Number.isInteger(productId) || productId <= 0 || !description || description.length > 2000) {
+        return Response.json({ error: "Choisissez un équipement et décrivez la panne (2 000 caractères maximum)." }, { status: 400 });
+      }
+
+      const product = await prisma.product.findUnique({ where: { id: productId }, select: { id: true } });
+      if (!product) {
+        return Response.json({ error: "Cet équipement n’est plus disponible." }, { status: 410 });
+      }
+
+      const acceptedRequest = await prisma.equipmentRequest.findFirst({
+        where: { userId: user.id, productId, status: "Acceptée" },
+        select: { id: true },
+      });
+      if (!acceptedRequest) {
+        return Response.json({ error: "Cet équipement ne fait pas partie de votre matériel accepté." }, { status: 403 });
+      }
+
+      const report = await prisma.$transaction(async (transaction) => {
+        const updated = await transaction.faultReport.updateMany({
+          where: { id: reportId, userId: user.id },
+          data: { productId, description },
+        });
+        if (updated.count === 0) return null;
+
+        return transaction.faultReport.findUnique({
+          where: { id: reportId },
+          include: {
+            user: { select: { id: true, name: true, email: true } },
+            product: { select: { id: true, marque: true, bureau: true } },
+          },
+        });
+      });
+
+      if (!report) return Response.json({ error: "Déclaration introuvable." }, { status: 404 });
+      return Response.json(report);
+    }
+
+    if (user.user_role !== "admin") {
+      return Response.json({ error: "Accès réservé aux administrateurs." }, { status: 403 });
+    }
+    if (!allowedStatuses.some((status) => status === body.status)) {
       return Response.json({ error: "Statut invalide." }, { status: 400 });
     }
 
@@ -131,10 +181,40 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (error instanceof Error && error.message === "REPORT_NOT_FOUND") {
       return Response.json({ error: "Déclaration introuvable." }, { status: 404 });
     }
+    if (error instanceof SyntaxError) {
+      return Response.json({ error: "Données de déclaration invalides." }, { status: 400 });
+    }
     if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
       return Response.json({ error: "Déclaration introuvable." }, { status: 404 });
     }
     console.error("Erreur lors de la mise à jour du statut de panne:", error);
     return Response.json({ error: "Impossible de modifier le statut." }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getSession();
+  if (!user) return Response.json({ error: "Authentification requise." }, { status: 401 });
+  if (user.user_role !== "utilisateur") {
+    return Response.json({ error: "Seuls les utilisateurs peuvent supprimer leurs déclarations." }, { status: 403 });
+  }
+
+  const reportId = Number((await params).id);
+  if (!Number.isInteger(reportId) || reportId <= 0) {
+    return Response.json({ error: "Identifiant de déclaration invalide." }, { status: 400 });
+  }
+
+  try {
+    const result = await prisma.faultReport.deleteMany({
+      where: { id: reportId, userId: user.id },
+    });
+    if (result.count === 0) {
+      return Response.json({ error: "Déclaration introuvable." }, { status: 404 });
+    }
+
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la déclaration de panne:", error);
+    return Response.json({ error: "Impossible de supprimer la déclaration." }, { status: 500 });
   }
 }

@@ -12,7 +12,7 @@ type FaultReport = {
   description: string;
   status: FaultReportStatus;
   createdAt: string;
-  product: { marque: string; bureau: string };
+  product: { id: number; marque: string; bureau: string };
 };
 
 const labels: Record<FaultReportStatus, string> = {
@@ -34,6 +34,8 @@ export default function FaultReportPanel() {
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -64,27 +66,72 @@ export default function FaultReportPanel() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      const response = await api.post<FaultReport>("/fault-reports", {
+      const reportData = {
         productId: Number(productId),
         description: description.trim(),
-      });
-      setReports((current) => [response.data, ...current]);
+      };
+      if (editingId !== null) {
+        const response = await api.patch<FaultReport>(`/fault-reports/${editingId}`, reportData);
+        setReports((current) => current.map((report) => report.id === editingId ? response.data : report));
+        setEditingId(null);
+        setMessage("Votre déclaration a été modifiée.");
+      } else {
+        const response = await api.post<FaultReport>("/fault-reports", reportData);
+        setReports((current) => [response.data, ...current]);
+        setMessage("Votre déclaration a été enregistrée.");
+      }
+      setProductId("");
       setDescription("");
-      setMessage("Votre déclaration a été enregistrée.");
     } catch (error) {
       const apiError = axios.isAxiosError<{ error?: string }>(error)
         ? error.response?.data?.error
         : undefined;
-      setMessage(apiError || (error instanceof Error ? error.message : "Impossible d'enregistrer la déclaration."));
+      const fallbackMessage = editingId === null
+        ? "Impossible d'enregistrer la déclaration."
+        : "Impossible de modifier la déclaration.";
+      setMessage(apiError || (error instanceof Error ? error.message : fallbackMessage));
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  function editReport(report: FaultReport) {
+    setEditingId(report.id);
+    setProductId(String(report.product.id));
+    setDescription(report.description);
+    setMessage("");
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setProductId("");
+    setDescription("");
+  }
+
+  async function deleteReport(id: number) {
+    if (!window.confirm("Supprimer définitivement cette déclaration de panne ?")) return;
+
+    setIsDeleting(id);
+    setMessage("");
+    try {
+      await api.delete(`/fault-reports/${id}`);
+      setReports((current) => current.filter((report) => report.id !== id));
+      if (editingId === id) cancelEdit();
+      setMessage("Votre déclaration a été supprimée.");
+    } catch (error) {
+      const apiError = axios.isAxiosError<{ error?: string }>(error)
+        ? error.response?.data?.error
+        : undefined;
+      setMessage(apiError || (error instanceof Error ? error.message : "Impossible de supprimer la déclaration."));
+    } finally {
+      setIsDeleting(null);
     }
   }
 
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
-        <h2 className="text-lg font-semibold text-slate-900">Déclarer une panne</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{editingId === null ? "Déclarer une panne" : "Modifier la déclaration"}</h2>
         <form onSubmit={submitReport} className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] sm:items-end">
           <label className="block text-sm font-medium text-slate-700">
             Équipement
@@ -115,8 +162,18 @@ export default function FaultReportPanel() {
             disabled={isSubmitting || !equipment.length}
             className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? "Envoi..." : "Déclarer"}
+            {isSubmitting ? "Envoi..." : editingId === null ? "Déclarer" : "Enregistrer"}
           </button>
+          {editingId !== null ? (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              disabled={isSubmitting}
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 sm:col-start-3"
+            >
+              Annuler
+            </button>
+          ) : null}
         </form>
         {equipment.length === 0 && !isLoading ? (
           <p className="mt-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900" role="status">
@@ -140,9 +197,27 @@ export default function FaultReportPanel() {
                 <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{report.description}</p>
                 <p className="mt-2 text-xs text-slate-500">{new Date(report.createdAt).toLocaleDateString("fr-FR")}</p>
               </div>
-              <span className={`inline-flex w-fit shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${badgeStyles[report.status]}`}>
-                {labels[report.status]}
-              </span>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${badgeStyles[report.status]}`}>
+                  {labels[report.status]}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => editReport(report)}
+                  disabled={isSubmitting || isDeleting !== null}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Modifier
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void deleteReport(report.id)}
+                  disabled={isSubmitting || isDeleting !== null}
+                  className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isDeleting === report.id ? "Suppression..." : "Supprimer"}
+                </button>
+              </div>
             </li>
           ))}
         </ul>

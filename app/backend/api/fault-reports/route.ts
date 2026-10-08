@@ -11,6 +11,7 @@ export async function GET() {
       user: { select: { id: true, name: true, email: true } },
       product: { select: { id: true, marque: true, bureau: true } },
     },
+
     orderBy: { createdAt: "desc" },
   });
 
@@ -19,6 +20,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const user = await getSession();
+
   if (!user) return Response.json({ error: "Authentification requise." }, { status: 401 });
   if (user.user_role !== "utilisateur") {
     return Response.json({ error: "Seuls les utilisateurs peuvent déclarer une panne." }, { status: 403 });
