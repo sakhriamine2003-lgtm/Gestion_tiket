@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+    
 
     // 3. Vérifier le password
     const passwordCorrect = await compare(password, user.password);
