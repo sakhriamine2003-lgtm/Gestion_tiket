@@ -17,8 +17,23 @@ model Ticket {
   userId      Int?
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   attachments TicketAttachment[]
+  messages    TicketMessage[]
 
   @@index([userId])
+}
+
+model TicketMessage {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int
+  senderId   Int?
+  senderRole String
+  content    String
+  createdAt  DateTime @default(now())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender     User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_messages")
 }
 
 model TicketAttachment {
@@ -60,6 +75,7 @@ model User {
   faultReports      FaultReport[]
   notifications     Notification[]
   tickets           Ticket[]
+  ticketMessages    TicketMessage[]
 }
 
 model Equipment {

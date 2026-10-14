@@ -1,6 +1,6 @@
 # Gestion des tickets et du matériel
 
-Application web construite avec Next.js App Router, React, Prisma et PostgreSQL. Les pages et les routes API sont dans `app/`. Le contrôle des sessions est dans `lib/auth.ts`.
+Application web JavaScript/JSX construite avec Next.js App Router, React, Prisma et PostgreSQL. Les pages et les routes API sont dans `app/`. Le contrôle des sessions est dans `lib/auth.js`.
 
 ## Démarrer le projet
 
@@ -21,7 +21,6 @@ Commandes de vérification :
 
 ```bash
 npm run lint
-npx tsc --noEmit
 npx prisma validate
 ```
 
@@ -31,7 +30,7 @@ npx prisma validate
 - `admin` : traite les demandes, consulte toutes les déclarations et modifie leur statut.
 - `responsable` : rôle reconnu par les sessions ; les pages spécifiques dépendent de l’application.
 
-Les rôles sont définis dans `lib/auth.ts`. Les pages protègent l’accès avec `requireRole(...)` et les routes API vérifient aussi la session et le rôle.
+Les rôles sont définis dans `lib/auth.js`. Les pages protègent l’accès avec `requireRole(...)` et les routes API vérifient aussi la session et le rôle.
 
 ## Parcours matériel et pannes
 
@@ -49,27 +48,27 @@ La migration `prisma/migrations/20261006153500_add_user_tickets_and_attachments/
 
 ## Fichiers backend
 
-- `app/backend/api/equipment/route.ts` : liste les produits ; en mode panne, renvoie uniquement les produits associés à une demande acceptée par l’utilisateur connecté.
-- `app/backend/api/equipment-requests/route.ts` : crée des demandes d’équipement et renvoie les demandes de l’utilisateur, ou toutes les demandes à l’admin. Ce fichier conserve aussi la compatibilité avec l’ancien formulaire de panne.
-- `app/backend/api/equipment-requests/[id]/route.ts` : permet à l’admin d’accepter ou de refuser une demande et met à jour le stock lors d’une acceptation.
-- `app/backend/api/fault-reports/route.ts` : liste les déclarations (toutes pour l’admin, personnelles pour l’utilisateur) et en crée après vérification du matériel accepté.
-- `app/backend/api/fault-reports/[id]/route.ts` : réserve à l’admin la modification du statut d’une panne.
-- `app/backend/api/tickets/route.ts` : crée les tickets utilisateur et renvoie les tickets selon le rôle.
-- `app/backend/api/tickets/[id]/attachments/[attachmentId]/route.ts` : sert une pièce jointe après contrôle des droits.
+- `app/backend/api/equipment/route.js` : liste les produits ; en mode panne, renvoie uniquement les produits associés à une demande acceptée par l’utilisateur connecté.
+- `app/backend/api/equipment-requests/route.js` : crée des demandes d’équipement et renvoie les demandes de l’utilisateur, ou toutes les demandes à l’admin. Ce fichier conserve aussi la compatibilité avec l’ancien formulaire de panne.
+- `app/backend/api/equipment-requests/[id]/route.js` : permet à l’admin d’accepter ou de refuser une demande et met à jour le stock lors d’une acceptation.
+- `app/backend/api/fault-reports/route.js` : liste les déclarations (toutes pour l’admin, personnelles pour l’utilisateur) et en crée après vérification du matériel accepté.
+- `app/backend/api/fault-reports/[id]/route.js` : réserve à l’admin la modification du statut d’une panne.
+- `app/backend/api/tickets/route.js` : crée les tickets utilisateur et renvoie les tickets selon le rôle.
+- `app/backend/api/tickets/[id]/attachments/[attachmentId]/route.js` : sert une pièce jointe après contrôle des droits.
 - `prisma/schema.prisma` : modèles, champs et relations Prisma, dont `FaultReport`.
 - `prisma/migrations/20260930120000_add_fault_reports/migration.sql` : crée la table des déclarations et limite ses statuts en base.
-- `lib/prisma.ts` : instance Prisma partagée par les routes et pages serveur.
-- `lib/axios.ts` : instance Axios utilisée par les panneaux client.
+- `lib/prisma.js` : instance Prisma partagée par les routes et pages serveur.
+- `lib/axios.js` : instance Axios utilisée par les panneaux client.
 
 ## Fichiers frontend
 
-- `app/components/AppNavigation.tsx` : liens de navigation adaptés au rôle.
-- `app/products_frontend/Gestion_role/admin/demandes-equipement/page.tsx` et `EquipmentRequestsPanel.tsx` : page admin et interface de traitement des demandes.
-- `app/products_frontend/Gestion_role/admin/declarations-pannes/page.tsx` et `FaultReportsPanel.tsx` : page admin et tableau des déclarations avec changement de statut.
-- `app/products_frontend/Gestion_role/admin/tickets/page.tsx` et `AdminTicketsPanel.tsx` : page admin des tickets utilisateur.
-- `app/products_frontend/Gestion_role/utilisateur/declarations-pannes/page.tsx` et `FaultReportPanel.tsx` : formulaire de panne et historique personnel.
-- `app/products_frontend/Gestion_role/utilisateur/tickets/page.tsx` et `UserTicketsPanel.tsx` : création et historique des tickets personnels.
-- `app/products_frontend/Gestion_role/utilisateur/page.tsx` et `EquipmentRequestPanel.tsx` : tableau de bord et demandes d’équipement de l’utilisateur.
+- `app/components/AppNavigation.jsx` : liens de navigation adaptés au rôle.
+- `app/products_frontend/Gestion_role/admin/demandes-equipement/page.jsx` et `EquipmentRequestsPanel.jsx` : page admin et interface de traitement des demandes.
+- `app/products_frontend/Gestion_role/admin/declarations-pannes/page.jsx` et `FaultReportsPanel.jsx` : page admin et tableau des déclarations avec changement de statut.
+- `app/products_frontend/Gestion_role/admin/tickets/page.jsx` et `AdminTicketsPanel.jsx` : page admin des tickets utilisateur.
+- `app/products_frontend/Gestion_role/utilisateur/declarations-pannes/page.jsx` et `FaultReportPanel.jsx` : formulaire de panne et historique personnel.
+- `app/products_frontend/Gestion_role/utilisateur/tickets/page.jsx` et `UserTicketsPanel.jsx` : création et historique des tickets personnels.
+- `app/products_frontend/Gestion_role/utilisateur/page.jsx` et `EquipmentRequestPanel.jsx` : tableau de bord et demandes d’équipement de l’utilisateur.
 
 ## Notifications e-mail
 
