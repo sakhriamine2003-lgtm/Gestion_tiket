@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { MAX_TICKET_TOTAL_SIZE, TicketAttachmentValidationError, validateTicketAttachments } from "@/lib/ticket-attachments";
 
 const MAX_MESSAGE_LENGTH = 2000;
+const ONLINE_WINDOW_MS = 15000;
 const MAX_MESSAGE_REQUEST_SIZE = MAX_TICKET_TOTAL_SIZE + 1024 * 1024;
 
 async function authorize(context) {
@@ -24,7 +25,9 @@ async function authorize(context) {
             description: true,
             status: true,
             createdAt: true,
-            user: { select: { id: true, name: true } },
+            adminReadAt: true,
+            userReadAt: true,
+            user: { select: { id: true, name: true, lastSeenAt: true } },
             attachments: {
                 where: { messageId: null },
                 select: { id: true, fileName: true, contentType: true, size: true },
@@ -41,14 +44,30 @@ export async function GET(_request, context) {
     const auth = await authorize(context);
     if (auth.error)
         return auth.error;
-    const { ticket } = auth;
+    const { ticket, user } = auth;
     try {
+        const now = new Date();
+        const isAdminViewer = user.user_role === "admin";
+        const [, , lastAdminSeen] = await Promise.all([
+            prisma.user.update({ where: { id: user.id }, data: { lastSeenAt: now } }),
+            prisma.ticket.updateMany({
+                where: { id: ticket.id },
+                data: isAdminViewer ? { adminReadAt: now } : { userReadAt: now },
+            }),
+            isAdminViewer
+                ? null
+                : prisma.user.aggregate({ where: { user_role: "admin" }, _max: { lastSeenAt: true } }),
+        ]);
+        const peerSeen = isAdminViewer ? ticket.user?.lastSeenAt : lastAdminSeen?._max.lastSeenAt;
+        const peerOnline = Boolean(peerSeen) && now.getTime() - new Date(peerSeen).getTime() < ONLINE_WINDOW_MS;
+        const peerReadAt = isAdminViewer ? ticket.userReadAt : ticket.adminReadAt;
         const stored = await prisma.ticketMessage.findMany({
-            where: { ticketId: ticket.id },
+            where: { ticketId: ticket.id, createdAt: { lte: new Date() } },
             orderBy: [{ createdAt: "asc" }, { id: "asc" }],
             select: {
                 id: true,
                 senderRole: true,
+                senderId: true,
                 content: true,
                 createdAt: true,
                 sender: { select: { name: true } },
@@ -61,7 +80,7 @@ export async function GET(_request, context) {
         // Le contenu initial du ticket est le premier message de la conversation.
         const initial = {
             id: 0,
-            senderRole: "utilisateur",
+            senderRole: ticket.user ? "utilisateur" : "admin",
             senderName: ticket.user?.name ?? null,
             content: ticket.description,
             createdAt: ticket.createdAt,
@@ -73,12 +92,13 @@ export async function GET(_request, context) {
                 id: message.id,
                 senderRole: message.senderRole,
                 senderName: message.sender?.name ?? null,
+                isAutomatic: message.senderId === null,
                 content: message.content,
                 createdAt: message.createdAt,
                 attachments: message.attachments,
             })),
         ];
-        return Response.json({ ticketId: ticket.id, title: ticket.title, status: ticket.status, messages });
+        return Response.json({ ticketId: ticket.id, title: ticket.title, status: ticket.status, messages, peerOnline, peerReadAt, hasPeer: isAdminViewer ? Boolean(ticket.user) : true });
     }
     catch (error) {
         console.error("Erreur lors du chargement de la conversation:", error);

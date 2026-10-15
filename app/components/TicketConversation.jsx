@@ -19,6 +19,7 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
     const [isLoading, setIsLoading] = useState(ticketId !== null && ticketId !== undefined);
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState("");
+    const [presence, setPresence] = useState({ online: false, readAt: 0, hasPeer: false });
     const bottomRef = useRef(null);
     const lastKeyRef = useRef("");
     const fileInputRef = useRef(null);
@@ -32,6 +33,11 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
             const response = await api.get(`/tickets/${ticketId}/messages`);
             setMessages(response.data.messages);
             setCurrentStatus(response.data.status);
+            setPresence({
+                online: response.data.peerOnline,
+                readAt: response.data.peerReadAt ? new Date(response.data.peerReadAt).getTime() : 0,
+                hasPeer: response.data.hasPeer,
+            });
         }
         catch (loadError) {
             setError(errorText(loadError, "Impossible de charger la conversation."));
@@ -140,7 +146,8 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
           {isDraft ? (<input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} maxLength={150} disabled={isSending} aria-label="Titre du ticket" placeholder="Titre du ticket (ex. Problème de connexion)" className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"/>) : (<h2 className="truncate text-base font-semibold text-slate-900">{title}</h2>)}
         </div>
         <div className="flex items-center gap-2">
-          {isDraft ? null : <span className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 ring-1 ring-teal-200">{currentStatus}</span>}
+          {isDraft || !presence.hasPeer ? null : <span className={`flex items-center gap-1 text-xs font-semibold ${presence.online ? "text-green-700" : "text-slate-500"}`}><span className={`h-2 w-2 rounded-full ${presence.online ? "bg-green-500" : "bg-slate-400"}`}/>{role === "admin" ? "Utilisateur" : "Administrateur"} {presence.online ? "connecté" : "non connecté"}</span>}
+          {isDraft ? null : <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${isClosed ? "bg-red-50 text-red-700 ring-red-200" : "bg-teal-50 text-teal-800 ring-teal-200"}`}>{isClosed ? "Fermé" : "Ouvert"}</span>}
           {role === "admin" ? (<button type="button" onClick={() => void changeStatus(isClosed ? "OPEN" : "CLOSED")} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
               {isClosed ? "Rouvrir" : "Fermer"}
             </button>) : null}
@@ -156,14 +163,17 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
         {messages.map((message) => {
             const isAdmin = message.senderRole === "admin";
             return (<div key={message.id} className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${isAdmin ? "rounded-bl-sm bg-white ring-1 ring-slate-200" : "rounded-br-sm bg-teal-700 text-white"}`}>
-                <p className={`text-xs font-semibold ${isAdmin ? "text-teal-700" : "text-teal-100"}`}>
-                  {isAdmin ? "Administrateur" : message.senderName ?? "Sportif"}
+              <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${message.isAutomatic ? "rounded-bl-sm bg-green-50 ring-1 ring-green-300" : isAdmin ? "rounded-bl-sm bg-white ring-1 ring-slate-200" : "rounded-br-sm bg-teal-700 text-white"}`}>
+                <p className={`text-xs font-semibold ${message.isAutomatic ? "text-green-700" : isAdmin ? "text-teal-700" : "text-teal-100"}`}>
+                  {message.isAutomatic ? "Confirmation" : isAdmin ? "Administrateur" : message.senderName ?? "Sportif"}
                 </p>
                 {message.content ? <p className="mt-0.5 whitespace-pre-wrap break-words text-sm">{message.content}</p> : null}
                 {message.attachments?.length ? <div className="mt-2"><TicketAttachments ticketId={ticketId} attachments={message.attachments}/></div> : null}
                 <p className={`mt-1 text-right text-[11px] ${isAdmin ? "text-slate-400" : "text-teal-100"}`}>
                   {new Date(message.createdAt).toLocaleString("fr-FR")}
+                  {message.senderRole === role && !message.isAutomatic && presence.hasPeer
+                    ? ` · ${presence.readAt >= new Date(message.createdAt).getTime() ? "Lu ✓✓" : "Non lu ✓"}`
+                    : ""}
                 </p>
               </div>
             </div>);
@@ -171,6 +181,7 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
         <div ref={bottomRef}/>
       </div>
 
+      {isSending && isDraft ? <p className="px-4 pt-2 text-sm text-slate-600">Création de la conversation en cours...</p> : null}
       {error ? <p className="px-4 pt-2 text-sm text-red-700" role="alert">{error}</p> : null}
       {canWrite ? (<form onSubmit={send} className="border-t border-slate-200 p-3">
           {files.length > 0 ? <ul className="mb-2 flex flex-wrap gap-2">

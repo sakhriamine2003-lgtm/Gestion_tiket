@@ -1,6 +1,8 @@
 import { getSession } from "@/lib/auth";
 import { MAX_TICKET_TOTAL_SIZE, TicketAttachmentValidationError, validateTicketAttachments, } from "@/lib/ticket-attachments";
 import { prisma } from "@/lib/prisma";
+const AUTO_REPLY = "Votre ticket a été créé avec succès ! Nous avons bien reçu votre message et un administrateur vous répondra bientôt.";
+const AUTO_REPLY_DELAY_MS = 20000;
 const attachmentSummary = {
     select: { id: true, fileName: true, contentType: true, size: true },
 };
@@ -18,6 +20,7 @@ export async function GET() {
                     where: { messageId: null },
                 },
                 messages: {
+                    where: { createdAt: { lte: new Date() } },
                     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
                     take: 1,
                     select: { content: true, createdAt: true, senderRole: true },
@@ -44,8 +47,8 @@ export async function POST(request) {
     const user = await getSession();
     if (!user)
         return Response.json({ error: "Authentification requise." }, { status: 401 });
-    if (user.user_role !== "utilisateur") {
-        return Response.json({ error: "Seuls les utilisateurs peuvent créer un ticket." }, { status: 403 });
+    if (user.user_role !== "utilisateur" && user.user_role !== "admin") {
+        return Response.json({ error: "Accès refusé." }, { status: 403 });
     }
     const contentLength = Number(request.headers.get("content-length"));
     if (Number.isFinite(contentLength) && contentLength > MAX_TICKET_TOTAL_SIZE + 1024 * 1024) {
@@ -79,8 +82,16 @@ export async function POST(request) {
             data: {
                 title: titleText,
                 description: descriptionText,
-                userId: user.id,
+                userId: user.user_role === "admin" ? null : user.id,
                 attachments: { create: attachments },
+                // Réponse automatique enregistrée en base, masquée par les lectures jusqu'à son createdAt (création + 20 s).
+                messages: {
+                    create: {
+                        senderRole: "admin",
+                        content: AUTO_REPLY,
+                        createdAt: new Date(Date.now() + AUTO_REPLY_DELAY_MS),
+                    },
+                },
             },
             include: {
                 user: { select: { id: true, name: true, email: true } },

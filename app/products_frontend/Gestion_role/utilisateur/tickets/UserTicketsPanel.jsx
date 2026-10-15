@@ -33,6 +33,8 @@ export default function UserTicketsPanel() {
             setIsLoading(false);
         }
         void init();
+        const timer = setInterval(() => void refreshTickets(), 5000);
+        return () => clearInterval(timer);
     }, [refreshTickets]);
 
     const selected = tickets.find((ticket) => ticket.id === selectedId);
@@ -54,7 +56,7 @@ export default function UserTicketsPanel() {
                   <span className="shrink-0 text-xs text-slate-500">{new Date(ticket.messages?.[0]?.createdAt ?? ticket.createdAt).toLocaleDateString("fr-FR")}</span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-slate-600">{ticket.messages?.[0]?.content ?? ticket.description}</p>
-                <p className="mt-1 text-xs text-slate-400">{ticket.status}</p>
+                <p className={`mt-1 text-xs font-semibold ${ticket.status === "CLOSED" ? "text-red-600" : "text-green-600"}`}>{ticket.status === "CLOSED" ? "Fermé" : "Ouvert"}</p>
               </button>
             </li>))}
         </ul>
