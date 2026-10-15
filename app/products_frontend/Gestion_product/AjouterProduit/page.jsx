@@ -106,6 +106,8 @@ export default function AjouterProduitPage() {
             <input type="number" id="bureau" name="bureau" value={formData.bureau} onChange={handleChange} placeholder="Ex: 14" required min="0" step="1" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"/>
           </div>
 
+    
+    
           {/* Champ Prix */}
           <div>
             <label htmlFor="prix" className="block text-sm font-semibold text-gray-700 mb-1">

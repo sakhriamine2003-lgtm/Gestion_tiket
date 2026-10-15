@@ -13,7 +13,10 @@ export async function GET() {
             where: user.user_role === "admin" ? undefined : { userId: user.id },
             include: {
                 user: { select: { id: true, name: true, email: true } },
-                attachments: attachmentSummary,
+                attachments: {
+                    ...attachmentSummary,
+                    where: { messageId: null },
+                },
                 messages: {
                     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
                     take: 1,
@@ -81,7 +84,10 @@ export async function POST(request) {
             },
             include: {
                 user: { select: { id: true, name: true, email: true } },
-                attachments: attachmentSummary,
+                attachments: {
+                    ...attachmentSummary,
+                    where: { messageId: null },
+                },
             },
         });
         return Response.json(ticket, { status: 201 });

@@ -52,7 +52,7 @@ export async function PATCH(request, context) {
         }
         const existing = await prisma.ticket.findFirst({
             where: { id: ticketId, userId: user.id },
-            select: { attachments: { select: { id: true, size: true } } },
+            select: { attachments: { where: { messageId: null }, select: { id: true, size: true } } },
         });
         if (!existing)
             return Response.json({ error: "Ticket introuvable." }, { status: 404 });
@@ -74,7 +74,7 @@ export async function PATCH(request, context) {
             if (updated.count === 0)
                 return null;
             if (removeIds.length) {
-                await transaction.ticketAttachment.deleteMany({ where: { ticketId, id: { in: removeIds } } });
+                await transaction.ticketAttachment.deleteMany({ where: { ticketId, messageId: null, id: { in: removeIds } } });
             }
             if (newAttachments.length) {
                 await transaction.ticketAttachment.createMany({
@@ -85,7 +85,7 @@ export async function PATCH(request, context) {
                 where: { id: ticketId },
                 include: {
                     user: { select: { id: true, name: true, email: true } },
-                    attachments: { select: { id: true, fileName: true, contentType: true, size: true }, orderBy: { id: "asc" } },
+                    attachments: { where: { messageId: null }, select: { id: true, fileName: true, contentType: true, size: true }, orderBy: { id: "asc" } },
                 },
             });
         });

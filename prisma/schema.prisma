@@ -31,6 +31,7 @@ model TicketMessage {
   createdAt  DateTime @default(now())
   ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   sender     User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  attachments TicketAttachment[]
 
   @@index([ticketId, createdAt])
   @@map("ticket_messages")
@@ -45,8 +46,11 @@ model TicketAttachment {
   data        Bytes
   createdAt   DateTime @default(now())
   ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  messageId   Int?
+  message     TicketMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
+  @@index([messageId])
 }
 
 model Product {
