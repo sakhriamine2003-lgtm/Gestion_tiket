@@ -55,7 +55,6 @@ export default function AjouterProduitPage() {
         }
         setIsSubmitting(true);
 
-
         try {
             const response = await axios.post("/backend/GestionProduit/AjouterProduit", {
                 marque,
