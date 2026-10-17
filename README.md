@@ -40,6 +40,12 @@ Les rôles sont définis dans `lib/auth.js`. Les pages protègent l’accès ave
 4. L’API vérifie à nouveau cette acceptation lors de l’enregistrement : masquer un équipement dans l’interface ne suffit pas à protéger la route.
 5. Le statut de panne est partagé entre l’admin et l’utilisateur. Les valeurs en base sont `a_faire`, `en_cours` et `termine` ; l’interface les affiche comme « À faire », « En cours » et « Terminé ».
 
+## Gestion du stock
+
+Les administrateurs accèdent à « Gestion du stock » depuis la navigation pour consulter et gérer les produits. Le formulaire « Ajouter un produit » demande la marque, le numéro de bureau, le prix en DH et le stock initial. La marque est obligatoire ; le bureau et le stock doivent être des entiers positifs ou nuls, et le prix un nombre positif ou nul. À la création, le stock initial est également enregistré comme `initialStock`.
+
+La création passe par `POST /backend/GestionProduit/AjouterProduit`, une route réservée aux administrateurs. Les produits sont enregistrés dans le modèle `Product` de Prisma.
+
 ## Tickets utilisateur
 
 Les tickets sont distincts des déclarations de pannes. Un utilisateur crée un ticket depuis « Mes tickets » avec un titre, un message et, facultativement, jusqu’à quatre photos ou vidéos (25 Mo au total). Les photos sont limitées à 5 Mo chacune et les vidéos à 20 Mo chacune. Les utilisateurs ne voient que leurs tickets ; les administrateurs voient tous les tickets dans la section « Tickets ».
@@ -55,7 +61,8 @@ La migration `prisma/migrations/20261006153500_add_user_tickets_and_attachments/
 - `app/backend/api/fault-reports/[id]/route.js` : réserve à l’admin la modification du statut d’une panne.
 - `app/backend/api/tickets/route.js` : crée les tickets utilisateur et renvoie les tickets selon le rôle.
 - `app/backend/api/tickets/[id]/attachments/[attachmentId]/route.js` : sert une pièce jointe après contrôle des droits.
-- `prisma/schema.prisma` : modèles, champs et relations Prisma, dont `FaultReport`.
+- `app/backend/GestionProduit/AjouterProduit/route.js` : crée un produit après vérification de la session et du rôle administrateur.
+- `prisma/schema.prisma` : modèles, champs et relations Prisma, dont `Product` et `FaultReport`.
 - `prisma/migrations/20260930120000_add_fault_reports/migration.sql` : crée la table des déclarations et limite ses statuts en base.
 - `lib/prisma.js` : instance Prisma partagée par les routes et pages serveur.
 - `lib/axios.js` : instance Axios utilisée par les panneaux client.
@@ -63,6 +70,7 @@ La migration `prisma/migrations/20261006153500_add_user_tickets_and_attachments/
 ## Fichiers frontend
 
 - `app/components/AppNavigation.jsx` : liens de navigation adaptés au rôle.
+- `app/products_frontend/Gestion_product/AjouterProduit/page.jsx` : formulaire de création d’un produit pour la gestion du stock.
 - `app/products_frontend/Gestion_role/admin/demandes-equipement/page.jsx` et `EquipmentRequestsPanel.jsx` : page admin et interface de traitement des demandes.
 - `app/products_frontend/Gestion_role/admin/declarations-pannes/page.jsx` et `FaultReportsPanel.jsx` : page admin et tableau des déclarations avec changement de statut.
 - `app/products_frontend/Gestion_role/admin/tickets/page.jsx` et `AdminTicketsPanel.jsx` : page admin des tickets utilisateur.
