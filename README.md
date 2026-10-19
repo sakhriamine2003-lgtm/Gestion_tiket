@@ -17,6 +17,8 @@ L’application est disponible sur <http://localhost:3000>.
 
 Après une modification de `prisma/schema.prisma`, appliquer la migration puis régénérer le client Prisma. Si `prisma generate` échoue sur Windows avec `EPERM`, arrêter d’abord le serveur Next.js (`Ctrl+C`), puis relancer la génération.
 
+La migration `20261019111000_remove_equipment_model` supprime l’ancienne table `Equipment` ainsi que la colonne `EquipmentRequest.equipmentId`. Les données éventuellement présentes dans la table `Equipment` seront supprimées lors de son application.
+
 Commandes de vérification :
 
 ```bash
@@ -46,7 +48,11 @@ Les administrateurs accèdent à « Gestion du stock » depuis la navigation pou
 
 La création passe par `POST /backend/GestionProduit/AjouterProduit`, une route réservée aux administrateurs. Les produits sont enregistrés dans le modèle `Product` de Prisma.
 
+Les diagrammes UML de l'application, affichables dans l'aperçu Markdown de VS Code et sur GitHub, sont disponibles dans [docs/diagrammes/gestion-produits.md](./docs/diagrammes/gestion-produits.md). Les sources PlantUML sont aussi disponibles dans [docs/diagrammes/gestion-produits-classes.puml](./docs/diagrammes/gestion-produits-classes.puml) et [docs/diagrammes/gestion-produits-cas-utilisation.puml](./docs/diagrammes/gestion-produits-cas-utilisation.puml).
+
 ## Tickets utilisateur
+
+Les tickets suivent le workflow `Ouvert → En cours → Traité → Fermé` (valeurs en base : `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, définies dans `lib/ticket-status.js`). L’administrateur passe un ticket à « En cours » puis « Traité » ; l’utilisateur propriétaire peut ensuite le fermer. Chaque changement envoie un e-mail (SMTP) : à l’utilisateur pour « En cours » et « Traité », à l’administrateur pour « Fermé » (adresse `ADMIN_EMAIL`, sinon comptes administrateurs). Un ticket fermé n’accepte plus de messages mais reste consultable. Les permissions et transitions sont contrôlées côté serveur dans `app/backend/api/tickets/[id]/status/route.js`.
 
 Les tickets sont distincts des déclarations de pannes. Un utilisateur crée un ticket depuis « Mes tickets » avec un titre, un message et, facultativement, jusqu’à quatre photos ou vidéos (25 Mo au total). Les photos sont limitées à 5 Mo chacune et les vidéos à 20 Mo chacune. Les utilisateurs ne voient que leurs tickets ; les administrateurs voient tous les tickets dans la section « Tickets ».
 

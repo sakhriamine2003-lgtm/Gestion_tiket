@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import api from "@/lib/axios";
 import { TicketAttachments } from "@/app/components/TicketAttachments";
+import TicketStatusBadge from "@/app/components/TicketStatusBadge";
+import { TICKET_STATUS, canTransition, nextStatusFor } from "@/lib/ticket-status";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -19,6 +21,7 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
     const [isLoading, setIsLoading] = useState(ticketId !== null && ticketId !== undefined);
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState("");
+    const [notice, setNotice] = useState("");
     const [presence, setPresence] = useState({ online: false, readAt: 0, hasPeer: false });
     const bottomRef = useRef(null);
     const lastKeyRef = useRef("");
@@ -126,9 +129,15 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
 
     async function changeStatus(next) {
         setError("");
+        setNotice("");
+        if (next === TICKET_STATUS.CLOSED && !window.confirm("Voulez-vous vraiment fermer cette conversation ? Vous ne pourrez plus envoyer de messages."))
+            return;
         try {
-            await api.patch(`/tickets/${ticketId}/status`, { status: next });
-            setCurrentStatus(next);
+            const response = await api.patch(`/tickets/${ticketId}/status`, { status: next });
+            setCurrentStatus(response.data.status);
+            if (response.data.emailSent === false && !response.data.unchanged) {
+                setNotice("Le statut a été mis à jour, mais la notification par e-mail n'a pas pu être envoyée.");
+            }
             onChanged?.();
         }
         catch (statusError) {
@@ -136,8 +145,14 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
         }
     }
 
-    const isClosed = currentStatus === "CLOSED";
-    const canWrite = role === "admin" || !isClosed;
+    const isClosed = currentStatus === TICKET_STATUS.CLOSED;
+    const canWrite = !isClosed;
+    const nextAdminStatus = role === "admin" ? nextStatusFor("admin", currentStatus) : null;
+    const canUserClose = role === "utilisateur" && canTransition("utilisateur", currentStatus, TICKET_STATUS.CLOSED);
+    const adminButtonLabels = {
+        [TICKET_STATUS.IN_PROGRESS]: "En cours",
+        [TICKET_STATUS.RESOLVED]: "Marquer comme traité",
+    };
 
     return (<section className="flex h-[75vh] min-h-96 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
@@ -147,9 +162,12 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
         </div>
         <div className="flex items-center gap-2">
           {isDraft || !presence.hasPeer ? null : <span className={`flex items-center gap-1 text-xs font-semibold ${presence.online ? "text-green-700" : "text-slate-500"}`}><span className={`h-2 w-2 rounded-full ${presence.online ? "bg-green-500" : "bg-slate-400"}`}/>{role === "admin" ? "Utilisateur" : "Administrateur"} {presence.online ? "connecté" : "non connecté"}</span>}
-          {isDraft ? null : <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${isClosed ? "bg-red-50 text-red-700 ring-red-200" : "bg-teal-50 text-teal-800 ring-teal-200"}`}>{isClosed ? "Fermé" : "Ouvert"}</span>}
-          {role === "admin" ? (<button type="button" onClick={() => void changeStatus(isClosed ? "OPEN" : "CLOSED")} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
-              {isClosed ? "Rouvrir" : "Fermer"}
+          {isDraft ? null : <TicketStatusBadge status={currentStatus}/>}
+          {nextAdminStatus ? (<button type="button" onClick={() => void changeStatus(nextAdminStatus)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
+              {adminButtonLabels[nextAdminStatus]}
+            </button>) : null}
+          {canUserClose ? (<button type="button" onClick={() => void changeStatus(TICKET_STATUS.CLOSED)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
+              Fermer la conversation
             </button>) : null}
           {onBack ? (<button type="button" onClick={onBack} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
               Retour
@@ -183,6 +201,7 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
 
       {isSending && isDraft ? <p className="px-4 pt-2 text-sm text-slate-600">Création de la conversation en cours...</p> : null}
       {error ? <p className="px-4 pt-2 text-sm text-red-700" role="alert">{error}</p> : null}
+      {notice ? <p className="px-4 pt-2 text-sm text-orange-700" role="status">{notice}</p> : null}
       {canWrite ? (<form onSubmit={send} className="border-t border-slate-200 p-3">
           {files.length > 0 ? <ul className="mb-2 flex flex-wrap gap-2">
               {files.map((file, index) => <li key={`${file.name}-${index}`} className="flex max-w-full items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
@@ -219,6 +238,6 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
           </button>
           </div>
           <p className="mt-1 text-xs text-slate-500">Photos (5 Mo max.), vidéos (20 Mo max.) ou PDF (10 Mo max.). Jusqu&apos;à 4 fichiers et 25 Mo par message.</p>
-        </form>) : (<p className="border-t border-slate-200 p-3 text-center text-sm text-slate-500">Ce ticket est fermé.</p>)}
+        </form>) : (<p className="border-t border-slate-200 p-3 text-center text-sm text-slate-500">Cette conversation est fermée.</p>)}
     </section>);
 }

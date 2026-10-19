@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import api from "@/lib/axios";
 import TicketConversation from "@/app/components/TicketConversation";
+import TicketStatusBadge from "@/app/components/TicketStatusBadge";
 export default function AdminTicketsPanel() {
     const [tickets, setTickets] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -43,7 +44,6 @@ export default function AdminTicketsPanel() {
           {tickets.length === 0 ? <p className="text-sm text-slate-500">Aucun ticket créé.</p> : null}
           <ul className="max-h-[70vh] space-y-2 overflow-y-auto">
             {tickets.map((ticket) => {
-                const closed = ticket.status === "CLOSED";
                 const owner = ticket.user?.name ?? "Administration";
                 return (<li key={ticket.id}>
                 <button type="button" onClick={() => setSelectedId(ticket.id)} className={`group flex w-full gap-3 rounded-xl border p-3 text-left shadow-sm transition hover:border-teal-300 hover:shadow ${ticket.id === selectedId ? "border-teal-500 bg-teal-50/60 ring-1 ring-teal-500" : "border-slate-200 bg-white"}`}>
@@ -59,10 +59,7 @@ export default function AdminTicketsPanel() {
                     <span className="mt-1.5 line-clamp-2 block text-sm text-slate-600">{ticket.description}</span>
                     <span className="mt-2 flex items-center justify-between">
                       <span className="text-xs font-medium text-slate-400">Ticket #{ticket.id}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${closed ? "bg-red-50 text-red-700 ring-red-200" : "bg-green-50 text-green-700 ring-green-200"}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-red-500" : "bg-green-500"}`}/>
-                        {closed ? "Fermé" : "Ouvert"}
-                      </span>
+                      <TicketStatusBadge status={ticket.status}/>
                     </span>
                   </span>
                 </button>

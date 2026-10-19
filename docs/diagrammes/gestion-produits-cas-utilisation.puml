@@ -1,0 +1,41 @@
+@startuml
+title Gestion des produits - diagramme de cas d'utilisation
+left to right direction
+
+actor Administrateur as Admin
+actor Utilisateur as User
+
+rectangle "Gestion des produits et du matériel" {
+  usecase "Consulter le catalogue" as UCList
+  usecase "Ajouter un produit" as UCAdd
+  usecase "Modifier un produit" as UCEdit
+  usecase "Supprimer un produit" as UCDelete
+  usecase "Saisir les caractéristiques\n(marque, bureau, prix, stock)" as UCFields
+  usecase "Valider les données" as UCValidate
+  usecase "Demander un équipement" as UCRequest
+  usecase "Déclarer une panne\nsur un matériel accepté" as UCFault
+}
+
+Admin --> UCList
+Admin --> UCAdd
+Admin --> UCEdit
+Admin --> UCDelete
+UCAdd ..> UCFields : <<include>>
+UCAdd ..> UCValidate : <<include>>
+UCEdit ..> UCFields : <<include>>
+UCEdit ..> UCValidate : <<include>>
+
+User --> UCRequest
+User --> UCFault
+
+note right of UCAdd
+  Création réservée aux administrateurs
+  authentifiés. Le stock initial est
+  aussi enregistré comme initialStock.
+end note
+
+note bottom of UCFault
+  Une demande d'équipement doit avoir
+  été acceptée pour le matériel concerné.
+end note
+@enduml

@@ -84,14 +84,18 @@ export async function POST(request) {
                 description: descriptionText,
                 userId: user.user_role === "admin" ? null : user.id,
                 attachments: { create: attachments },
-                // Réponse automatique enregistrée en base, masquée par les lectures jusqu'à son createdAt (création + 20 s).
-                messages: {
-                    create: {
-                        senderRole: "admin",
-                        content: AUTO_REPLY,
-                        createdAt: new Date(Date.now() + AUTO_REPLY_DELAY_MS),
-                    },
-                },
+                // Réponse automatique réservée aux conversations créées par l'admin, masquée par les lectures jusqu'à son createdAt (création + 20 s).
+                ...(user.user_role === "admin"
+                    ? {
+                        messages: {
+                            create: {
+                                senderRole: "admin",
+                                content: AUTO_REPLY,
+                                createdAt: new Date(Date.now() + AUTO_REPLY_DELAY_MS),
+                            },
+                        },
+                    }
+                    : {}),
             },
             include: {
                 user: { select: { id: true, name: true, email: true } },

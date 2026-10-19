@@ -78,25 +78,10 @@ model User {
   createdAt         DateTime           @default(now())
   lastSeenAt        DateTime?
   equipmentRequests EquipmentRequest[]
-  assignedEquipment Equipment[]        @relation("AssignedEquipment")
   faultReports      FaultReport[]
   notifications     Notification[]
   tickets           Ticket[]
   ticketMessages    TicketMessage[]
-}
-
-model Equipment {
-  id           Int                @id @default(autoincrement())
-  name         String
-  type         String
-  description  String
-  condition    String
-  available    Boolean            @default(true)
-  assignedToId Int?
-  assignedTo   User?              @relation("AssignedEquipment", fields: [assignedToId], references: [id])
-  requests     EquipmentRequest[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
 }
 
 model EquipmentRequest {
@@ -105,14 +90,11 @@ model EquipmentRequest {
   reason      String?
   createdAt   DateTime   @default(now())
   userId      Int
-  equipmentId Int?
   productId   Int
   user        User       @relation(fields: [userId], references: [id])
-  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
   product     Product    @relation(fields: [productId], references: [id])
 
   @@index([userId])
-  @@index([equipmentId])
   @@index([productId])
 }
 

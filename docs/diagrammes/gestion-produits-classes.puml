@@ -1,0 +1,96 @@
+@startuml
+title Application de gestion - diagramme de classes
+hide circle
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: Int
+  +name: String
+  +email: String
+  +password: String
+  +user_role: String
+  +equipmentCount: Int
+  +createdAt: DateTime
+  +lastSeenAt: DateTime?
+}
+
+class Product {
+  +id: Int
+  +marque: String
+  +bureau: String
+  +prix: Float
+  +stock: Int
+  +initialStock: Int
+  +createdAt: DateTime
+  +updatedAt: DateTime
+}
+
+class EquipmentRequest {
+  +id: Int
+  +status: String
+  +reason: String?
+  +createdAt: DateTime
+  +userId: Int
+  +productId: Int
+}
+
+class FaultReport {
+  +id: Int
+  +description: String
+  +status: String
+  +createdAt: DateTime
+  +updatedAt: DateTime
+  +userId: Int
+  +productId: Int
+}
+
+class Notification {
+  +id: Int
+  +userId: Int
+  +message: String
+  +createdAt: DateTime
+}
+
+class Ticket {
+  +id: Int
+  +title: String
+  +description: String
+  +status: String
+  +createdAt: DateTime
+  +updatedAt: DateTime
+  +userId: Int?
+  +adminReadAt: DateTime?
+  +userReadAt: DateTime?
+}
+
+class TicketMessage {
+  +id: Int
+  +ticketId: Int
+  +senderId: Int?
+  +senderRole: String
+  +content: String
+  +createdAt: DateTime
+}
+
+class TicketAttachment {
+  +id: Int
+  +ticketId: Int
+  +messageId: Int?
+  +fileName: String
+  +contentType: String
+  +size: Int
+  +data: Bytes
+  +createdAt: DateTime
+}
+
+User "1" -- "0..*" EquipmentRequest : effectue
+Product "1" -- "0..*" EquipmentRequest : concerne
+User "1" -- "0..*" FaultReport : signale
+Product "1" -- "0..*" FaultReport : concerne
+User "1" -- "0..*" Notification : reçoit
+User "0..1" -- "0..*" Ticket : ouvre
+Ticket "1" *-- "0..*" TicketMessage : contient
+User "0..1" -- "0..*" TicketMessage : envoie
+Ticket "1" *-- "0..*" TicketAttachment : pièces jointes
+TicketMessage "0..1" -- "0..*" TicketAttachment : pièce jointe au message
+@enduml

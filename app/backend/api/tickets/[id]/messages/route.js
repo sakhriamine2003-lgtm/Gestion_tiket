@@ -6,6 +6,9 @@ const MAX_MESSAGE_LENGTH = 2000;
 const ONLINE_WINDOW_MS = 15000;
 const MAX_MESSAGE_REQUEST_SIZE = MAX_TICKET_TOTAL_SIZE + 1024 * 1024;
 
+class ConversationClosedError extends Error {
+}
+
 async function authorize(context) {
     const user = await getSession();
     if (!user)
@@ -111,8 +114,8 @@ export async function POST(request, context) {
     if (auth.error)
         return auth.error;
     const { user, ticket } = auth;
-    if (ticket.status === "CLOSED" && user.user_role !== "admin") {
-        return Response.json({ error: "Ce ticket est fermé." }, { status: 409 });
+    if (ticket.status === "CLOSED") {
+        return Response.json({ error: "Cette conversation est fermée." }, { status: 409 });
     }
     const contentLength = Number(request.headers.get("content-length"));
     if (Number.isFinite(contentLength) && contentLength > MAX_MESSAGE_REQUEST_SIZE) {
@@ -158,6 +161,9 @@ export async function POST(request, context) {
     }
     try {
         const message = await prisma.$transaction(async (transaction) => {
+            const current = await transaction.ticket.findUnique({ where: { id: ticket.id }, select: { status: true } });
+            if (current?.status === "CLOSED")
+                throw new ConversationClosedError();
             const created = await transaction.ticketMessage.create({
                 data: { ticketId: ticket.id, senderId: user.id, senderRole: user.user_role, content },
                 select: { id: true, senderRole: true, content: true, createdAt: true },
@@ -182,6 +188,9 @@ export async function POST(request, context) {
         return Response.json({ ...message, senderName: user.name }, { status: 201 });
     }
     catch (error) {
+        if (error instanceof ConversationClosedError) {
+            return Response.json({ error: "Cette conversation est fermée." }, { status: 409 });
+        }
         console.error("Erreur lors de l'envoi du message:", error);
         return Response.json({ error: "Impossible d'envoyer le message." }, { status: 500 });
     }

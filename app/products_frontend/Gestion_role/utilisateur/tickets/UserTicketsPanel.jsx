@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import api from "@/lib/axios";
 import TicketConversation from "@/app/components/TicketConversation";
+import TicketStatusBadge from "@/app/components/TicketStatusBadge";
 
 const NEW_CONVERSATION = "new";
 
@@ -56,7 +57,7 @@ export default function UserTicketsPanel() {
                   <span className="shrink-0 text-xs text-slate-500">{new Date(ticket.messages?.[0]?.createdAt ?? ticket.createdAt).toLocaleDateString("fr-FR")}</span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-slate-600">{ticket.messages?.[0]?.content ?? ticket.description}</p>
-                <p className={`mt-1 text-xs font-semibold ${ticket.status === "CLOSED" ? "text-red-600" : "text-green-600"}`}>{ticket.status === "CLOSED" ? "Fermé" : "Ouvert"}</p>
+                <div className="mt-1"><TicketStatusBadge status={ticket.status}/></div>
               </button>
             </li>))}
         </ul>
