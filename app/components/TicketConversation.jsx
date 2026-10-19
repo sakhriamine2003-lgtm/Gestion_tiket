@@ -22,7 +22,8 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
-    const [presence, setPresence] = useState({ online: false, readAt: 0, hasPeer: false });
+    const [readBaseline, setReadBaseline] = useState(null);
+    const [presence, setPresence] = useState({ online: false, hasPeer: false });
     const bottomRef = useRef(null);
     const lastKeyRef = useRef("");
     const fileInputRef = useRef(null);
@@ -36,9 +37,10 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
             const response = await api.get(`/tickets/${ticketId}/messages`);
             setMessages(response.data.messages);
             setCurrentStatus(response.data.status);
+            // La référence de lecture est figée au premier chargement : les messages reçus ensuite restent signalés comme nouveaux.
+            setReadBaseline((current) => current ?? (response.data.selfReadAt ? new Date(response.data.selfReadAt).getTime() : 0));
             setPresence({
                 online: response.data.peerOnline,
-                readAt: response.data.peerReadAt ? new Date(response.data.peerReadAt).getTime() : 0,
                 hasPeer: response.data.hasPeer,
             });
         }
@@ -146,6 +148,13 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
     }
 
     const isClosed = currentStatus === TICKET_STATUS.CLOSED;
+    // Nouveau = message de l'autre partie reçu après la dernière lecture connue à l'ouverture de la conversation.
+    const isNewMessage = (message) => readBaseline !== null
+        && !message.isAutomatic
+        && message.id !== 0
+        && message.senderRole !== role
+        && new Date(message.createdAt).getTime() > readBaseline;
+    const newCount = messages.filter(isNewMessage).length;
     const canWrite = !isClosed;
     const nextAdminStatus = role === "admin" ? nextStatusFor("admin", currentStatus) : null;
     const canUserClose = role === "utilisateur" && canTransition("utilisateur", currentStatus, TICKET_STATUS.CLOSED);
@@ -178,21 +187,33 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
       <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50/50 p-4">
         {isLoading ? <p className="text-sm text-slate-500">Chargement...</p> : null}
         {isDraft ? <p className="text-center text-sm text-slate-500">Saisissez le titre du ticket, puis écrivez votre premier message pour démarrer la conversation.</p> : null}
-        {messages.map((message) => {
+        {messages.map((message, index) => {
             const isAdmin = message.senderRole === "admin";
-            return (<div key={message.id} className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${message.isAutomatic ? "rounded-bl-sm bg-green-50 ring-1 ring-green-300" : isAdmin ? "rounded-bl-sm bg-white ring-1 ring-slate-200" : "rounded-br-sm bg-teal-700 text-white"}`}>
-                <p className={`text-xs font-semibold ${message.isAutomatic ? "text-green-700" : isAdmin ? "text-teal-700" : "text-teal-100"}`}>
-                  {message.isAutomatic ? "Confirmation" : isAdmin ? "Administrateur" : message.senderName ?? "Sportif"}
+            const isNew = isNewMessage(message);
+            const isFirstNew = isNew && !messages.slice(0, index).some(isNewMessage);
+            const bubble = message.isAutomatic
+                ? "rounded-bl-sm bg-green-50 ring-1 ring-green-300"
+                : isNew
+                    ? "rounded-2xl bg-amber-50 ring-2 ring-amber-400 shadow-md"
+                    : isAdmin ? "rounded-bl-sm bg-white ring-1 ring-slate-200" : "rounded-br-sm bg-teal-700 text-white";
+            return (<div key={message.id}>
+              {isFirstNew ? (<div className="my-3 flex items-center gap-3" role="separator">
+                  <span className="h-px flex-1 bg-amber-300"/>
+                  <span className="rounded-full bg-amber-500 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">{newCount} nouveau{newCount > 1 ? "x" : ""} message{newCount > 1 ? "s" : ""}</span>
+                  <span className="h-px flex-1 bg-amber-300"/>
+                </div>) : null}
+              <div className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}>
+              <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${bubble}`}>
+                <p className={`flex items-center gap-2 text-xs font-semibold ${message.isAutomatic ? "text-green-700" : isNew ? "text-amber-800" : isAdmin ? "text-teal-700" : "text-teal-100"}`}>
+                  {message.isAutomatic ? "Confirmation" : isAdmin ? "Administrateur" : message.senderName ?? "Utilisateur"}
+                  {isNew ? <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">Nouveau</span> : null}
                 </p>
-                {message.content ? <p className="mt-0.5 whitespace-pre-wrap break-words text-sm">{message.content}</p> : null}
+                {message.content ? <p className={`mt-0.5 whitespace-pre-wrap break-words text-sm ${isNew ? "text-slate-900" : ""}`}>{message.content}</p> : null}
                 {message.attachments?.length ? <div className="mt-2"><TicketAttachments ticketId={ticketId} attachments={message.attachments}/></div> : null}
-                <p className={`mt-1 text-right text-[11px] ${isAdmin ? "text-slate-400" : "text-teal-100"}`}>
+                <p className={`mt-1 text-right text-[11px] ${isNew ? "text-amber-700" : isAdmin ? "text-slate-400" : "text-teal-100"}`}>
                   {new Date(message.createdAt).toLocaleString("fr-FR")}
-                  {message.senderRole === role && !message.isAutomatic && presence.hasPeer
-                    ? ` · ${presence.readAt >= new Date(message.createdAt).getTime() ? "Lu ✓✓" : "Non lu ✓"}`
-                    : ""}
                 </p>
+              </div>
               </div>
             </div>);
         })}

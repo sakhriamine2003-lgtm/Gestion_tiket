@@ -101,7 +101,9 @@ export async function GET(_request, context) {
                 attachments: message.attachments,
             })),
         ];
-        return Response.json({ ticketId: ticket.id, title: ticket.title, status: ticket.status, messages, peerOnline, peerReadAt, hasPeer: isAdminViewer ? Boolean(ticket.user) : true });
+        // Lecture antérieure à cette requête (authorize() a lu le ticket avant la mise à jour), utilisée pour repérer les nouveaux messages.
+        const selfReadAt = isAdminViewer ? ticket.adminReadAt : ticket.userReadAt;
+        return Response.json({ ticketId: ticket.id, title: ticket.title, status: ticket.status, messages, peerOnline, peerReadAt, selfReadAt, hasPeer: isAdminViewer ? Boolean(ticket.user) : true });
     }
     catch (error) {
         console.error("Erreur lors du chargement de la conversation:", error);
