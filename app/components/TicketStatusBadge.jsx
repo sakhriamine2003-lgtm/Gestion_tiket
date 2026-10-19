@@ -7,4 +7,5 @@ export default function TicketStatusBadge({ status }) {
       <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`}/>
       {TICKET_STATUS_LABELS[key]}
     </span>);
+    
 }
