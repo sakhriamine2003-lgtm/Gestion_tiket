@@ -1,8 +1,12 @@
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isUserRole } from "@/lib/auth";
+import { getSession, isUserRole } from "@/lib/auth";
 export async function POST(request) {
+    const session = await getSession();
+    if (!session || session.user_role !== "admin") {
+        return NextResponse.json({ error: "Accès réservé à l'administrateur" }, { status: 403 });
+    }
     try {
         const body = await request.json();
         const name = typeof body.name === "string" ? body.name.trim() : "";
