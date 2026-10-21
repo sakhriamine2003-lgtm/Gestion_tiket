@@ -122,9 +122,10 @@ export default async function AdminPage() {
         {
             label: "Utilisateurs",
             value: userCount,
-            detail: `${numberFormat.format(productCount)} références au catalogue`,
+            detail: `${numberFormat.format(userCount)} comptes enregistrés`,
             icon: Users,
             iconStyle: "bg-rose-50 text-rose-700",
+            href: "/products_frontend/User/AfficherUser",
         },
     ];
     const statusSections = [
