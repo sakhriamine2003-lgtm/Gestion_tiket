@@ -22,7 +22,6 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
-    const [readBaseline, setReadBaseline] = useState(null);
     const [presence, setPresence] = useState({ online: false, hasPeer: false });
     const bottomRef = useRef(null);
     const lastKeyRef = useRef("");
@@ -37,8 +36,6 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
             const response = await api.get(`/tickets/${ticketId}/messages`);
             setMessages(response.data.messages);
             setCurrentStatus(response.data.status);
-            // La référence de lecture est figée au premier chargement : les messages reçus ensuite restent signalés comme nouveaux.
-            setReadBaseline((current) => current ?? (response.data.selfReadAt ? new Date(response.data.selfReadAt).getTime() : 0));
             setPresence({
                 online: response.data.peerOnline,
                 hasPeer: response.data.hasPeer,
