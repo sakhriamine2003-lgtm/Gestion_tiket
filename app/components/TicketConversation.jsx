@@ -197,11 +197,6 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
                     ? "rounded-2xl bg-amber-50 ring-2 ring-amber-400 shadow-md"
                     : isAdmin ? "rounded-bl-sm bg-white ring-1 ring-slate-200" : "rounded-br-sm bg-teal-700 text-white";
             return (<div key={message.id}>
-              {isFirstNew ? (<div className="my-3 flex items-center gap-3" role="separator">
-                  <span className="h-px flex-1 bg-amber-300"/>
-                  <span className="rounded-full bg-amber-500 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">{newCount} nouveau{newCount > 1 ? "x" : ""} message{newCount > 1 ? "s" : ""}</span>
-                  <span className="h-px flex-1 bg-amber-300"/>
-                </div>) : null}
               <div className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}>
               <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${bubble}`}>
                 <p className={`flex items-center gap-2 text-xs font-semibold ${message.isAutomatic ? "text-green-700" : isAdmin ? "text-teal-700" : "text-teal-100"}`}>
