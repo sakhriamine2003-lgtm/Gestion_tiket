@@ -170,7 +170,8 @@ export default async function AdminPage() {
       </section>
 
       <section aria-label="Indicateurs clés" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {statCards.map(({ label, value, detail, icon: Icon, iconStyle }) => (<article key={label} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-900/[0.03]">
+        {statCards.map(({ label, value, detail, icon: Icon, iconStyle, href }) => {
+          const card = <article className={`h-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-900/[0.03] ${href ? "transition group-hover:border-teal-300 group-hover:shadow-md" : ""}`}>
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm font-medium text-slate-500">{label}</p>
               <span className={`rounded-xl p-2.5 ${iconStyle}`}>
@@ -179,7 +180,12 @@ export default async function AdminPage() {
             </div>
             <p className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">{numberFormat.format(value)}</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>
-          </article>))}
+          </article>;
+
+          return href
+            ? <Link key={label} href={href} aria-label={`Afficher ${label.toLowerCase()}`} className="group rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2">{card}</Link>
+            : <div key={label}>{card}</div>;
+        })}
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
