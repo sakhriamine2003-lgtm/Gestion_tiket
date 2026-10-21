@@ -204,9 +204,8 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
                 </div>) : null}
               <div className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}>
               <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${bubble}`}>
-                <p className={`flex items-center gap-2 text-xs font-semibold ${message.isAutomatic ? "text-green-700" : isNew ? "text-amber-800" : isAdmin ? "text-teal-700" : "text-teal-100"}`}>
+                <p className={`flex items-center gap-2 text-xs font-semibold ${message.isAutomatic ? "text-green-700" : isAdmin ? "text-teal-700" : "text-teal-100"}`}>
                   {message.isAutomatic ? "Confirmation" : isAdmin ? "Administrateur" : message.senderName ?? "Utilisateur"}
-                  {isNew ? <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">Nouveau</span> : null}
                 </p>
                 {message.content ? <p className="mt-0.5 whitespace-pre-wrap break-words text-sm">{message.content}</p> : null}
                 {message.attachments?.length ? <div className="mt-2"><TicketAttachments ticketId={ticketId} attachments={message.attachments}/></div> : null}
