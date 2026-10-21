@@ -208,9 +208,9 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
                   {message.isAutomatic ? "Confirmation" : isAdmin ? "Administrateur" : message.senderName ?? "Utilisateur"}
                   {isNew ? <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">Nouveau</span> : null}
                 </p>
-                {message.content ? <p className={`mt-0.5 whitespace-pre-wrap break-words text-sm ${isNew ? "text-slate-900" : ""}`}>{message.content}</p> : null}
+                {message.content ? <p className="mt-0.5 whitespace-pre-wrap break-words text-sm">{message.content}</p> : null}
                 {message.attachments?.length ? <div className="mt-2"><TicketAttachments ticketId={ticketId} attachments={message.attachments}/></div> : null}
-                <p className={`mt-1 text-right text-[11px] ${isNew ? "text-amber-700" : isAdmin ? "text-slate-400" : "text-teal-100"}`}>
+                <p className={`mt-1 text-right text-[11px] ${isAdmin || message.isAutomatic ? "text-slate-400" : "text-teal-100"}`}>
                   {new Date(message.createdAt).toLocaleString("fr-FR")}
                 </p>
               </div>
