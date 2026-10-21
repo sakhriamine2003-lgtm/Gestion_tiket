@@ -187,15 +187,11 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
       <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50/50 p-4">
         {isLoading ? <p className="text-sm text-slate-500">Chargement...</p> : null}
         {isDraft ? <p className="text-center text-sm text-slate-500">Saisissez le titre du ticket, puis écrivez votre premier message pour démarrer la conversation.</p> : null}
-        {messages.map((message, index) => {
+        {messages.map((message) => {
             const isAdmin = message.senderRole === "admin";
-            const isNew = isNewMessage(message);
-            const isFirstNew = isNew && !messages.slice(0, index).some(isNewMessage);
             const bubble = message.isAutomatic
                 ? "rounded-bl-sm bg-green-50 ring-1 ring-green-300"
-                : isNew
-                    ? "rounded-2xl bg-amber-50 ring-2 ring-amber-400 shadow-md"
-                    : isAdmin ? "rounded-bl-sm bg-white ring-1 ring-slate-200" : "rounded-br-sm bg-teal-700 text-white";
+                : isAdmin ? "rounded-bl-sm bg-white ring-1 ring-slate-200" : "rounded-br-sm bg-teal-700 text-white";
             return (<div key={message.id}>
               <div className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}>
               <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${bubble}`}>
