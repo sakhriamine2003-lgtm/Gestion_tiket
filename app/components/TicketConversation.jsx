@@ -148,13 +148,6 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
     }
 
     const isClosed = currentStatus === TICKET_STATUS.CLOSED;
-    // Nouveau = message de l'autre partie reçu après la dernière lecture connue à l'ouverture de la conversation.
-    const isNewMessage = (message) => readBaseline !== null
-        && !message.isAutomatic
-        && message.id !== 0
-        && message.senderRole !== role
-        && new Date(message.createdAt).getTime() > readBaseline;
-    const newCount = messages.filter(isNewMessage).length;
     const canWrite = !isClosed;
     const nextAdminStatus = role === "admin" ? nextStatusFor("admin", currentStatus) : null;
     const canUserClose = role === "utilisateur" && canTransition("utilisateur", currentStatus, TICKET_STATUS.CLOSED);
