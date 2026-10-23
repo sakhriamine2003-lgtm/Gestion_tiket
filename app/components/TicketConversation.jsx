@@ -12,7 +12,7 @@ function errorText(error, fallback) {
     return axios.isAxiosError(error) ? error.response?.data?.error ?? fallback : fallback;
 }
 
-export default function TicketConversation({ ticketId, title, status, role, onBack, onChanged, onCreated }) {
+export default function TicketConversation({ ticketId, title, status, statusEnabled = true, role, onBack, onChanged, onCreated }) {
     const [messages, setMessages] = useState([]);
     const [currentStatus, setCurrentStatus] = useState(status);
     const [content, setContent] = useState("");
@@ -146,7 +146,7 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
 
     const isClosed = currentStatus === TICKET_STATUS.CLOSED;
     const canWrite = !isClosed;
-    const nextAdminStatus = role === "admin" ? nextStatusFor("admin", currentStatus) : null;
+    const nextAdminStatus = role === "admin" && statusEnabled ? nextStatusFor("admin", currentStatus) : null;
     const canUserClose = role === "utilisateur" && canTransition("utilisateur", currentStatus, TICKET_STATUS.CLOSED);
     const adminButtonLabels = {
         [TICKET_STATUS.IN_PROGRESS]: "En cours",
@@ -161,7 +161,7 @@ export default function TicketConversation({ ticketId, title, status, role, onBa
         </div>
         <div className="flex items-center gap-2">
           {isDraft || !presence.hasPeer ? null : <span className={`flex items-center gap-1 text-xs font-semibold ${presence.online ? "text-green-700" : "text-slate-500"}`}><span className={`h-2 w-2 rounded-full ${presence.online ? "bg-green-500" : "bg-slate-400"}`}/>{role === "admin" ? "Utilisateur" : "Administrateur"} {presence.online ? "connecté" : "non connecté"}</span>}
-          {isDraft ? null : <TicketStatusBadge status={currentStatus}/>}
+          {isDraft || !statusEnabled ? null : <TicketStatusBadge status={currentStatus}/>}
           {nextAdminStatus ? (<button type="button" onClick={() => void changeStatus(nextAdminStatus)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
               {adminButtonLabels[nextAdminStatus]}
             </button>) : null}

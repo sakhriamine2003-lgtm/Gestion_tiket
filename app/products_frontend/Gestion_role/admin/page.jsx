@@ -1,7 +1,6 @@
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import CreateUserForm from "./CreateUserForm";
 import { Activity, ArrowUpRight, Boxes, CheckCircle2, ClipboardList, Clock3, Package, Users, Wrench, } from "lucide-react";
 const requestStatusStyles = {
     "En attente": "bg-amber-100 text-amber-800",
@@ -245,7 +244,6 @@ export default async function AdminPage() {
             </div>
           </article>
 
-          <CreateUserForm />
         </div>
 
         <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">

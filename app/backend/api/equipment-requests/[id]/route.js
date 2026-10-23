@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+            import { getSession } from "@/lib/auth";
 import { sendEmails } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 export async function PATCH(request, { params }) {

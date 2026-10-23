@@ -59,7 +59,7 @@ export default function AdminTicketsPanel() {
                     <span className="mt-1.5 line-clamp-2 block text-sm text-slate-600">{ticket.description}</span>
                     <span className="mt-2 flex items-center justify-between">
                       <span className="text-xs font-medium text-slate-400">Ticket #{ticket.id}</span>
-                      <TicketStatusBadge status={ticket.status}/>
+                      {ticket.user ? <TicketStatusBadge status={ticket.status}/> : null}
                     </span>
                   </span>
                 </button>
@@ -70,7 +70,7 @@ export default function AdminTicketsPanel() {
           {selectedId === "new" ? (<TicketConversation key="new" ticketId={null} role="admin" onCreated={(ticket) => {
                     setSelectedId(ticket.id);
                     void refreshTickets();
-                }}/>) : selected ? (<TicketConversation key={selected.id} ticketId={selected.id} title={selected.title} status={selected.status} role="admin" onChanged={() => void refreshTickets()}/>) : (<p className="hidden items-center justify-center rounded-xl border border-dashed border-slate-300 p-8 text-sm text-slate-500 lg:flex">
+                }}/>) : selected ? (<TicketConversation key={selected.id} ticketId={selected.id} title={selected.title} status={selected.status} statusEnabled={Boolean(selected.user)} role="admin" onChanged={() => void refreshTickets()}/>) : (<p className="hidden items-center justify-center rounded-xl border border-dashed border-slate-300 p-8 text-sm text-slate-500 lg:flex">
               Sélectionnez un ticket pour ouvrir la conversation.
             </p>)}
         </div>) : null}

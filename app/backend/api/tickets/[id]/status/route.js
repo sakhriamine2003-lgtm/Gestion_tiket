@@ -71,6 +71,9 @@ export async function PATCH(request, context) {
         });
         if (!ticket)
             return Response.json({ error: "Ticket introuvable." }, { status: 404 });
+        if (!ticket.user) {
+            return Response.json({ error: "Le statut n'est pas géré pour les tickets créés par l'administration." }, { status: 403 });
+        }
         if (ticket.status === newStatus) {
             return Response.json({ id: ticket.id, status: ticket.status, unchanged: true, emailSent: null });
         }
