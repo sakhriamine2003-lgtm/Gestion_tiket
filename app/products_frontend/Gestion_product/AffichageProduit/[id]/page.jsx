@@ -1,5 +1,5 @@
-import { requireRole } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { requireRole } from "@backend/auth/session";
+import { getProductWithAssignments } from "@backend/features/products/product.queries";
 import { ArrowLeft, Package, Users } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,16 +8,7 @@ export default async function ProductDetailPage({ params }) {
     const id = Number((await params).id);
     if (!Number.isInteger(id) || id <= 0)
         notFound();
-    const product = await prisma.product.findUnique({
-        where: { id },
-        include: {
-            equipmentRequests: {
-                where: { status: "Acceptée" },
-                orderBy: { createdAt: "desc" },
-                include: { user: { select: { id: true, name: true, email: true } } },
-            },
-        },
-    });
+    const product = await getProductWithAssignments(id);
     if (!product)
         notFound();
     const recipients = new Map();

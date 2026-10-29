@@ -1,6 +1,6 @@
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@backend/auth/session";
 import { ClipboardList, Clock3, ShieldCheck } from "lucide-react";
-import EquipmentRequestPanel from "./EquipmentRequestPanel";
+import EquipmentRequestPanel from "@frontend/features/equipment-requests/EquipmentRequestPanel";
 export default async function UtilisateurPage() {
     const user = await requireRole("utilisateur");
     return (<main className="mx-auto w-full max-w-5xl space-y-6 p-8">

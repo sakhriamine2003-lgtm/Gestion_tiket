@@ -1,5 +1,5 @@
-import { requireRole } from "@/lib/auth";
-import FaultReportsPanel from "./FaultReportsPanel";
+import { requireRole } from "@backend/auth/session";
+import FaultReportsPanel from "@frontend/features/fault-reports/FaultReportsPanel";
 export default async function FaultReportsAdminPage() {
     await requireRole("admin");
     return (<main className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-8">

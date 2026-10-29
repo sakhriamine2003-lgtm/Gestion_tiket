@@ -1,12 +1,12 @@
-import { prisma } from '@/lib/prisma';
+import { requireRole } from "@backend/auth/session";
+import { listProducts } from "@backend/features/products/product.queries";
 import { Pencil, Plus, PackageX } from 'lucide-react';
 import Link from 'next/link';
-import DeleteProductButton from '../SuppimeProduit/DeleteProductButton';
+import DeleteProductButton from "@frontend/features/products/DeleteProductButton";
 
 export default async function ProductsPage() {
-    const products = await prisma.product.findMany({
-        orderBy: { createdAt: 'desc' },
-    });
+  await requireRole("admin");
+  const products = await listProducts();
     return (<div className="min-h-screen bg-slate-50/50 p-6 sm:p-10">
       <div className="max-w-6xl mx-auto space-y-6">
         

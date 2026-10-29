@@ -1,5 +1,5 @@
-import { requireRole } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { requireRole } from "@backend/auth/session";
+import { getAdminDashboardData } from "@backend/features/dashboard/dashboard.queries";
 import Link from "next/link";
 import { Activity, ArrowUpRight, Boxes, CheckCircle2, ClipboardList, Clock3, Package, Users, Wrench, } from "lucide-react";
 const requestStatusStyles = {
@@ -30,36 +30,7 @@ const statusBarStyles = {
 const numberFormat = new Intl.NumberFormat("fr-FR");
 export default async function AdminPage() {
     const user = await requireRole("admin");
-    const [requestStatuses, faultStatuses, productCount, availableProductCount, stockTotal, userCount, recentRequests, recentFaultReports,] = await Promise.all([
-        prisma.equipmentRequest.groupBy({ by: ["status"], _count: { _all: true } }),
-        prisma.faultReport.groupBy({ by: ["status"], _count: { _all: true } }),
-        prisma.product.count(),
-        prisma.product.count({ where: { stock: { gt: 0 } } }),
-        prisma.product.aggregate({ _sum: { stock: true } }),
-        prisma.user.count(),
-        prisma.equipmentRequest.findMany({
-            take: 5,
-            orderBy: { createdAt: "desc" },
-            select: {
-                id: true,
-                status: true,
-                createdAt: true,
-                user: { select: { name: true } },
-                product: { select: { marque: true, bureau: true } },
-            },
-        }),
-        prisma.faultReport.findMany({
-            take: 5,
-            orderBy: { createdAt: "desc" },
-            select: {
-                id: true,
-                status: true,
-                createdAt: true,
-                user: { select: { name: true } },
-                product: { select: { marque: true, bureau: true } },
-            },
-        }),
-    ]);
+  const { requestStatuses, faultStatuses, productCount, availableProductCount, stockTotal, userCount, recentRequests, recentFaultReports } = await getAdminDashboardData();
     const requestTotal = requestStatuses.reduce((total, row) => total + row._count._all, 0);
     const faultTotal = faultStatuses.reduce((total, row) => total + row._count._all, 0);
     const pendingRequests = requestStatuses.find((row) => row.status === "En attente")?._count._all ?? 0;

@@ -1,5 +1,5 @@
-import { requireRole } from "@/lib/auth";
-import FaultReportPanel from "./FaultReportPanel";
+import { requireRole } from "@backend/auth/session";
+import FaultReportPanel from "@frontend/features/fault-reports/FaultReportPanel";
 export default async function MyFaultReportsPage() {
     await requireRole("utilisateur");
     return (<main className="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-8">
