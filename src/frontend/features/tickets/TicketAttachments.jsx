@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export function TicketAttachments({ ticketId, attachments, }) {
+export function TicketAttachments({ ticketId, attachments }) {
     if (!attachments.length)
         return <span className="text-xs text-slate-400">Aucun fichier joint</span>;
     return (<ul className="flex flex-wrap gap-3">

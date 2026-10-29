@@ -1,9 +1,9 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import api from "@/lib/axios";
-import TicketConversation from "@/app/components/TicketConversation";
-import TicketStatusBadge from "@/app/components/TicketStatusBadge";
+import api from "@frontend/services/api";
+import TicketConversation from "@frontend/features/tickets/TicketConversation";
+import TicketStatusBadge from "@frontend/features/tickets/TicketStatusBadge";
 
 const NEW_CONVERSATION = "new";
 
@@ -12,7 +12,6 @@ export default function UserTicketsPanel() {
     const [selectedId, setSelectedId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState("");
-
     const refreshTickets = useCallback(async () => {
         try {
             const response = await api.get("/tickets");
@@ -26,7 +25,6 @@ export default function UserTicketsPanel() {
             return null;
         }
     }, []);
-
     useEffect(() => {
         async function init() {
             const loaded = await refreshTickets();
@@ -37,18 +35,13 @@ export default function UserTicketsPanel() {
         const timer = setInterval(() => void refreshTickets(), 5000);
         return () => clearInterval(timer);
     }, [refreshTickets]);
-
     const selected = tickets.find((ticket) => ticket.id === selectedId);
     const isDraft = selectedId === NEW_CONVERSATION;
-
     if (isLoading)
         return <p className="text-sm text-slate-500">Chargement...</p>;
-
     return (<div className="grid gap-4 lg:grid-cols-[20rem_1fr]">
       <aside className="space-y-2">
-        <button type="button" onClick={() => setSelectedId(NEW_CONVERSATION)} className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition ${isDraft ? "bg-teal-800 text-white" : "bg-teal-700 text-white hover:bg-teal-800"}`}>
-          + Nouvelle conversation
-        </button>
+        <button type="button" onClick={() => setSelectedId(NEW_CONVERSATION)} className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition ${isDraft ? "bg-teal-800 text-white" : "bg-teal-700 text-white hover:bg-teal-800"}`}>+ Nouvelle conversation</button>
         <ul className="max-h-[65vh] space-y-2 overflow-y-auto">
           {tickets.map((ticket) => (<li key={ticket.id} className={`flex items-start gap-2 rounded-lg border p-3 transition hover:bg-slate-50 ${ticket.id === selectedId ? "border-teal-500 bg-teal-50/50" : "border-slate-200 bg-white"}`}>
               <button type="button" onClick={() => setSelectedId(ticket.id)} className="min-w-0 flex-1 text-left">

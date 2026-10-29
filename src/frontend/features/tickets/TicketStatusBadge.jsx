@@ -1,4 +1,4 @@
-import { TICKET_STATUS, TICKET_STATUS_LABELS, TICKET_STATUS_STYLES } from "@/lib/ticket-status";
+import { TICKET_STATUS, TICKET_STATUS_LABELS, TICKET_STATUS_STYLES } from "@shared/ticket-status";
 
 export default function TicketStatusBadge({ status }) {
     const key = Object.hasOwn(TICKET_STATUS, status) ? status : TICKET_STATUS.OPEN;
@@ -7,5 +7,4 @@ export default function TicketStatusBadge({ status }) {
       <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`}/>
       {TICKET_STATUS_LABELS[key]}
     </span>);
-    
 }

@@ -1,5 +1,5 @@
-import { requireRole } from "@/lib/auth";
-import AdminTicketsPanel from "./AdminTicketsPanel";
+import { requireRole } from "@backend/auth/session";
+import AdminTicketsPanel from "@frontend/features/tickets/AdminTicketsPanel";
 export default async function AdminTicketsPage() {
     await requireRole("admin");
     return (<main className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-8">

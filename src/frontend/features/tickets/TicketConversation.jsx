@@ -1,10 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import api from "@/lib/axios";
-import { TicketAttachments } from "@/app/components/TicketAttachments";
-import TicketStatusBadge from "@/app/components/TicketStatusBadge";
-import { TICKET_STATUS, canTransition, nextStatusFor } from "@/lib/ticket-status";
+import api from "@frontend/services/api";
+import { TicketAttachments } from "@frontend/features/tickets/TicketAttachments";
+import TicketStatusBadge from "@frontend/features/tickets/TicketStatusBadge";
+import { TICKET_STATUS, canTransition, nextStatusFor } from "@shared/ticket-status";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -26,7 +26,6 @@ export default function TicketConversation({ ticketId, title, status, statusEnab
     const bottomRef = useRef(null);
     const lastKeyRef = useRef("");
     const fileInputRef = useRef(null);
-
     const isDraft = ticketId === null || ticketId === undefined;
 
     const load = useCallback(async () => {
@@ -36,10 +35,7 @@ export default function TicketConversation({ ticketId, title, status, statusEnab
             const response = await api.get(`/tickets/${ticketId}/messages`);
             setMessages(response.data.messages);
             setCurrentStatus(response.data.status);
-            setPresence({
-                online: response.data.peerOnline,
-                hasPeer: response.data.hasPeer,
-            });
+            setPresence({ online: response.data.peerOnline, hasPeer: response.data.hasPeer });
         }
         catch (loadError) {
             setError(errorText(loadError, "Impossible de charger la conversation."));
@@ -81,7 +77,6 @@ export default function TicketConversation({ ticketId, title, status, statusEnab
         setError("");
         try {
             if (isDraft) {
-                // Le premier message d'une nouvelle conversation crée le ticket.
                 const formData = new FormData();
                 formData.set("title", ticketTitle);
                 formData.set("description", text || "Pièce(s) jointe(s)");
@@ -162,18 +157,11 @@ export default function TicketConversation({ ticketId, title, status, statusEnab
         <div className="flex items-center gap-2">
           {isDraft || !presence.hasPeer ? null : <span className={`flex items-center gap-1 text-xs font-semibold ${presence.online ? "text-green-700" : "text-slate-500"}`}><span className={`h-2 w-2 rounded-full ${presence.online ? "bg-green-500" : "bg-slate-400"}`}/>{role === "admin" ? "Utilisateur" : "Administrateur"} {presence.online ? "connecté" : "non connecté"}</span>}
           {isDraft || !statusEnabled ? null : <TicketStatusBadge status={currentStatus}/>}
-          {nextAdminStatus ? (<button type="button" onClick={() => void changeStatus(nextAdminStatus)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
-              {adminButtonLabels[nextAdminStatus]}
-            </button>) : null}
-          {canUserClose ? (<button type="button" onClick={() => void changeStatus(TICKET_STATUS.CLOSED)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
-              Fermer la conversation
-            </button>) : null}
-          {onBack ? (<button type="button" onClick={onBack} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">
-              Retour
-            </button>) : null}
+          {nextAdminStatus ? (<button type="button" onClick={() => void changeStatus(nextAdminStatus)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">{adminButtonLabels[nextAdminStatus]}</button>) : null}
+          {canUserClose ? (<button type="button" onClick={() => void changeStatus(TICKET_STATUS.CLOSED)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">Fermer la conversation</button>) : null}
+          {onBack ? (<button type="button" onClick={onBack} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white">Retour</button>) : null}
         </div>
       </header>
-
       <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50/50 p-4">
         {isLoading ? <p className="text-sm text-slate-500">Chargement...</p> : null}
         {isDraft ? <p className="text-center text-sm text-slate-500">Saisissez le titre du ticket, puis écrivez votre premier message pour démarrer la conversation.</p> : null}
@@ -190,16 +178,13 @@ export default function TicketConversation({ ticketId, title, status, statusEnab
                 </p>
                 {message.content ? <p className="mt-0.5 whitespace-pre-wrap break-words text-sm">{message.content}</p> : null}
                 {message.attachments?.length ? <div className="mt-2"><TicketAttachments ticketId={ticketId} attachments={message.attachments}/></div> : null}
-                <p className={`mt-1 text-right text-[11px] ${isAdmin || message.isAutomatic ? "text-slate-400" : "text-teal-100"}`}>
-                  {new Date(message.createdAt).toLocaleString("fr-FR")}
-                </p>
+                <p className={`mt-1 text-right text-[11px] ${isAdmin || message.isAutomatic ? "text-slate-400" : "text-teal-100"}`}>{new Date(message.createdAt).toLocaleString("fr-FR")}</p>
               </div>
               </div>
             </div>);
         })}
         <div ref={bottomRef}/>
       </div>
-
       {isSending && isDraft ? <p className="px-4 pt-2 text-sm text-slate-600">Création de la conversation en cours...</p> : null}
       {error ? <p className="px-4 pt-2 text-sm text-red-700" role="alert">{error}</p> : null}
       {notice ? <p className="px-4 pt-2 text-sm text-orange-700" role="status">{notice}</p> : null}
@@ -225,18 +210,14 @@ export default function TicketConversation({ ticketId, title, status, statusEnab
                 setFiles(selected);
                 setError("");
             }} className="hidden"/>
-          <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} aria-label="Joindre des photos, vidéos ou PDF" className="shrink-0 rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
-            Joindre
-          </button>
+          <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} aria-label="Joindre des photos, vidéos ou PDF" className="shrink-0 rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Joindre</button>
           <textarea disabled={isSending} value={content} onChange={(event) => setContent(event.target.value)} onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
                     event.currentTarget.form?.requestSubmit();
                 }
             }} rows={2} maxLength={2000} placeholder="Écrire un message..." className="min-h-11 flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm outline-none focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"/>
-          <button type="submit" disabled={isSending || (!content.trim() && files.length === 0)} className="rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50">
-            {isSending ? "Envoi..." : "Envoyer"}
-          </button>
+          <button type="submit" disabled={isSending || (!content.trim() && files.length === 0)} className="rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50">{isSending ? "Envoi..." : "Envoyer"}</button>
           </div>
           <p className="mt-1 text-xs text-slate-500">Photos (5 Mo max.), vidéos (20 Mo max.) ou PDF (10 Mo max.). Jusqu&apos;à 4 fichiers et 25 Mo par message.</p>
         </form>) : (<p className="border-t border-slate-200 p-3 text-center text-sm text-slate-500">Cette conversation est fermée.</p>)}
