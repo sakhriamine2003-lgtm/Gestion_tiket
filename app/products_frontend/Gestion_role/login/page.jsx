@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
-import api from "@/lib/axios";
+import api from "@frontend/services/api";
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");

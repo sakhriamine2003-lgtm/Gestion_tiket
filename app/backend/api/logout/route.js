@@ -1,6 +1,1 @@
-import { NextResponse } from "next/server";
-import { clearSession } from "@/lib/auth";
-export async function POST() {
-    await clearSession();
-    return NextResponse.json({ success: true });
-}
+export { POST } from "@backend/features/auth/logout.handler";
