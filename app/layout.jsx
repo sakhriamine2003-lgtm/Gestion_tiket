@@ -16,10 +16,10 @@ export const metadata = {
 };
 export default async function RootLayout({ children }) {
     const user = await getSession();
-    return (<html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+    return (<html lang="fr" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-screen flex bg-[#f7f9fc] text-slate-900">
         {user ? <AppNavigation user={user}/> : null}
-        {children}
+        <div className="min-w-0 flex-1">{children}</div>
       </body>
     </html>);
 }
