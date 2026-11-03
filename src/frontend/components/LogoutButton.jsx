@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 
-export function LogoutButton() {
+export function LogoutButton({ className = "" }) {
     const router = useRouter();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     async function logout() {
@@ -18,5 +18,5 @@ export function LogoutButton() {
             router.refresh();
         }
     }
-    return (<button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60" onClick={logout} type="button" disabled={isLoggingOut} aria-busy={isLoggingOut}><LogOut size={16} aria-hidden="true"/>{isLoggingOut ? "Déconnexion..." : "Se déconnecter"}</button>);
+    return (<button className={`inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60 ${className}`} onClick={logout} type="button" disabled={isLoggingOut} aria-busy={isLoggingOut}><LogOut size={16} aria-hidden="true"/>{isLoggingOut ? "Déconnexion..." : "Se déconnecter"}</button>);
 }
