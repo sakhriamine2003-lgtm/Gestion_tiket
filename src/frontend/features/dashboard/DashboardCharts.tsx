@@ -30,17 +30,18 @@ export function DonutChart({ statuses }: { statuses: TicketStatusSlice[] }) {
     );
 }
 
-export function TicketTrendChart({ dailyCounts }: { dailyCounts: DailyTicketCount[] }) {
+export function TicketTrendChart({ dailyCounts, endDay }: { dailyCounts: DailyTicketCount[]; endDay: string }) {
     const [period, setPeriod] = useState(30);
     const points = useMemo(() => {
-        const now = new Date();
+        const [year, month, day] = endDay.split("-").map(Number);
+        const endDate = new Date(Date.UTC(year, month - 1, day));
         const counts = new Map(dailyCounts.map((item) => [item.day, item.count]));
         return Array.from({ length: period }, (_, index) => {
-            const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - period + index + 1));
+            const date = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate() - period + index + 1));
             const key = date.toISOString().slice(0, 10);
             return { date, count: counts.get(key) ?? 0 };
         });
-    }, [dailyCounts, period]);
+    }, [dailyCounts, endDay, period]);
     const max = Math.max(1, ...points.map((point) => point.count));
     const coords = points.map((point, index) => ({ x: 12 + (index / Math.max(1, points.length - 1)) * 576, y: 180 - (point.count / max) * 150 }));
     const line = coords.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");

@@ -5,6 +5,8 @@ export async function getAdminDashboardData(userId) {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const trendStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 89));
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
     const [
         ticketStatuses,
@@ -14,8 +16,7 @@ export async function getAdminDashboardData(userId) {
         resolvedLastMonth,
         recentTickets,
         dailyTicketCounts,
-        faultStatuses,
-        recentFaultReports,
+        todayFaultReports,
         productCount,
         availableProductCount,
         stockTotal,
@@ -61,9 +62,9 @@ export async function getAdminDashboardData(userId) {
             GROUP BY DATE_TRUNC('day', "createdAt" AT TIME ZONE 'UTC')
             ORDER BY DATE_TRUNC('day', "createdAt" AT TIME ZONE 'UTC')
         `,
-        prisma.faultReport.groupBy({ by: ["status"], _count: { _all: true } }),
         prisma.faultReport.findMany({
-            take: 4,
+            where: { createdAt: { gte: todayStart, lt: tomorrowStart } },
+            take: 8,
             orderBy: { createdAt: "desc" },
             select: {
                 id: true,
@@ -94,8 +95,8 @@ export async function getAdminDashboardData(userId) {
         resolvedLastMonth,
         recentTickets,
         dailyTicketCounts,
-        faultStatuses,
-        recentFaultReports,
+        trendEndDay: now.toISOString().slice(0, 10),
+        todayFaultReports,
         productCount,
         availableProductCount,
         stockTotal,
