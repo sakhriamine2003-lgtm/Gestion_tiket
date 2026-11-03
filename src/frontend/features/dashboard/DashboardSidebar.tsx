@@ -6,6 +6,7 @@ import {
     Boxes,
     Building2,
     CalendarDays,
+    ClipboardList,
     FileBarChart,
     Headset,
     LayoutDashboard,
@@ -30,7 +31,9 @@ const dashboardPath = "/products_frontend/Gestion_role/admin";
 const links: NavigationItem[] = [
     { label: "Tableau de bord", href: dashboardPath, icon: LayoutDashboard },
     { label: "Tickets", href: `${dashboardPath}/tickets`, icon: Ticket },
-    { label: "Interventions", icon: CalendarDays },
+    { label: "Demandes d’équipement", href: `${dashboardPath}/demandes-equipement`, icon: ClipboardList },
+    { label: "Déclarations de pannes", href: `${dashboardPath}/declarations-pannes`, icon: Wrench },
+    { label: "Interventions planifiées", icon: CalendarDays },
     { label: "Équipements", href: "/products_frontend/Gestion_product/AffichageProduit", icon: Boxes },
     { label: "Clients", href: "/products_frontend/User/AfficherUser", icon: Users },
     { label: "Techniciens", icon: Headset },
