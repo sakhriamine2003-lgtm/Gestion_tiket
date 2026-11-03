@@ -13,6 +13,7 @@ const dateTimeFormat = new Intl.DateTimeFormat("fr-FR", {
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "UTC",
 });
 
 function initials(name: string) {
