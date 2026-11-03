@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
     BookOpen,
     Boxes,
@@ -63,8 +64,14 @@ export default function DashboardSidebar({
             <aside className={`fixed inset-y-0 left-0 z-50 flex w-[270px] flex-col bg-[#101b36] text-slate-300 transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 <div className="flex h-[82px] items-center justify-between border-b border-white/[0.08] px-6">
                     <Link href={dashboardPath} onClick={onClose} className="flex items-center gap-3">
-                        <span className="grid size-10 place-items-center rounded-xl bg-white text-[11px] font-black tracking-tight text-[#12254a]">SM</span>
-                        <span><span className="block text-[17px] font-bold tracking-[0.12em] text-white">SOFIMED</span><span className="mt-0.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-400">Gestion SAV</span></span>
+                        <Image
+                            src="/sofimed-logo.png"
+                            alt="SOFIMED — La puissance derrière votre process"
+                            width={483}
+                            height={128}
+                            priority
+                            className="h-auto max-h-14 w-[210px] object-contain"
+                        />
                     </Link>
                     <button type="button" onClick={onClose} aria-label="Fermer le menu" className="rounded-lg p-2 text-slate-400 hover:bg-white/10 lg:hidden"><X size={18} /></button>
                 </div>
