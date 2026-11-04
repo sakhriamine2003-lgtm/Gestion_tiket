@@ -15,8 +15,8 @@ Ce projet ne fournit pas encore de package autonome par module. Pour intégrer u
 
 ### Tickets et conversations
 
-- Frontend : `src/frontend/features/tickets/` et `src/frontend/services/api.js`; dépend du statut partagé `src/shared/ticket-status.js`.
-- Backend : `src/backend/features/tickets/`, `src/backend/auth/session.js`, `src/backend/db/prisma.js`, `src/backend/notifications/email.js`.
+- Frontend : `src/frontend/features/tickets/` et `src/frontend/services/api.js`; dépend du statut partagé `src/shared/statutTicket.js`.
+- Backend : `src/backend/features/tickets/`, `src/backend/auth/session.js`, `src/backend/db/prisma.js`, `src/backend/notifications/courriel.js`.
 - Routes à ajouter : `/api/tickets`, `/api/tickets/[id]`, `/api/tickets/[id]/status`, `/api/tickets/[id]/messages`, `/api/tickets/[id]/attachments/[attachmentId]` (adapter les URL dans le service frontend si le préfixe change).
 - Prisma : `User`, `Ticket`, `TicketMessage`, `TicketAttachment`; conserver leurs clés étrangères, `adminReadAt`, `userReadAt`, `lastSeenAt` et les index associés.
 - NPM : `next`, `react`, `axios`, `@prisma/client`, `nodemailer`; `prisma` en développement. Pas de bibliothèque de stockage externe : les octets restent en base.
@@ -27,9 +27,9 @@ Ce projet ne fournit pas encore de package autonome par module. Pour intégrer u
 
 ### Authentification et utilisateurs
 
-- Frontend : `src/frontend/features/users/CreateUserForm.jsx`; pages de connexion et rapport utilisateur sont des entrées/écrans sous `app/products_frontend/...` et peuvent nécessiter une adaptation propre au projet hôte.
-- Backend : `src/backend/auth/session.js`, `src/backend/features/auth/`, `src/backend/features/users/`, `src/backend/db/prisma.js`.
-- Routes : login/logout, `/api/users`, `/api/users/[id]` et route de liste admin `/api/users/AfficherUsers`; choisir un chemin unique ou garder des façades de compatibilité.
+- Frontend : `src/frontend/features/utilisateurs/FormulaireCreerUtilisateur.jsx`; pages de connexion et rapport utilisateur sont des entrées/écrans sous `app/Gestion_produits/...` et peuvent nécessiter une adaptation propre au projet hôte.
+- Backend : `src/backend/auth/session.js`, `src/backend/features/authentification/`, `src/backend/features/utilisateurs/`, `src/backend/db/prisma.js`.
+- Routes : login/logout, `/api/utilisateurs`, `/api/utilisateurs/[id]` et route de liste admin `/api/utilisateurs/AfficherUtilisateurs`; choisir un chemin unique ou garder des façades de compatibilité.
 - Prisma : `User`; les rapports d’utilisateur incluent également demandes, tickets et pannes, donc les relations correspondantes sont requises pour cette vue.
 - NPM : `next`, `react`, `bcryptjs`, `@prisma/client`; `prisma` en développement.
 - Environnement : `DATABASE_URL`, `AUTH_SECRET`.
@@ -39,8 +39,8 @@ Ce projet ne fournit pas encore de package autonome par module. Pour intégrer u
 
 ### Produits et stock
 
-- Frontend : `src/frontend/features/products/`.
-- Backend : `src/backend/features/products/`, `src/backend/db/prisma.js`, `src/backend/auth/session.js`.
+- Frontend : `src/frontend/features/produits/`.
+- Backend : `src/backend/features/produits/`, `src/backend/db/prisma.js`, `src/backend/auth/session.js`.
 - Routes : garder les URLs historiques `/backend/GestionProduit/AjouterProduit`, `/ModifierProduit`, `/SupprimerProduit` ou mettre à jour les appels frontend et ajouter des alias.
 - Prisma : `Product`; pour le détail d’affectation et les suppressions liées, `EquipmentRequest`, `FaultReport` et `User` sont également requis.
 - NPM : `next`, `react`, `axios`, `lucide-react`, `@prisma/client`; `prisma` en développement.
@@ -51,9 +51,9 @@ Ce projet ne fournit pas encore de package autonome par module. Pour intégrer u
 
 ### Demandes d’équipement
 
-- Frontend : `src/frontend/features/equipment-requests/`.
-- Backend : `src/backend/features/equipment-requests/`, auth, Prisma et notifications e-mail.
-- Routes : `/backend/api/equipment`, `/backend/api/equipment-requests`, `/backend/api/equipment-requests/[id]`.
+- Frontend : `src/frontend/features/demandes-equipement/`.
+- Backend : `src/backend/features/demandes-equipement/`, auth, Prisma et notifications e-mail.
+- Routes : `/backend/api/equipement`, `/backend/api/demandes-equipement`, `/backend/api/demandes-equipement/[id]`.
 - Prisma : `EquipmentRequest`, `Product`, `User`; le stock et `User.equipmentCount` sont modifiés dans une transaction lors de l’acceptation.
 - NPM : `next`, `react`, `@prisma/client`, `nodemailer`; `prisma` en développement.
 - Environnement : `DATABASE_URL`, `AUTH_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`.
@@ -63,9 +63,9 @@ Ce projet ne fournit pas encore de package autonome par module. Pour intégrer u
 
 ### Déclarations de panne et notifications
 
-- Frontend : `src/frontend/features/fault-reports/`.
-- Backend : `src/backend/features/fault-reports/`, `src/backend/notifications/email.js`, auth et Prisma.
-- Routes : `/backend/api/fault-reports`, `/backend/api/fault-reports/[id]`; `equipment` sert à choisir le produit accepté.
+- Frontend : `src/frontend/features/declarations-pannes/`.
+- Backend : `src/backend/features/declarations-pannes/`, `src/backend/notifications/courriel.js`, auth et Prisma.
+- Routes : `/backend/api/declarations-pannes`, `/backend/api/declarations-pannes/[id]`; `equipment` sert à choisir le produit accepté.
 - Prisma : `FaultReport`, `Notification`, `EquipmentRequest`, `Product`, `User`.
 - NPM : `next`, `react`, `axios`, `qrcode`, `nodemailer`, `@prisma/client`; `prisma` en développement.
 - Environnement : `DATABASE_URL`, `AUTH_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`.
@@ -75,8 +75,8 @@ Ce projet ne fournit pas encore de package autonome par module. Pour intégrer u
 
 ### Tableau administrateur
 
-- Backend : `src/backend/features/dashboard/dashboard.queries.js`.
-- Frontend : page route actuelle `app/products_frontend/Gestion_role/admin/page.jsx`.
+- Backend : `src/backend/features/tableau-de-bord/tableauBord.queries.js`.
+- Frontend : page route actuelle `app/Gestion_produits/Gestion_roles/admin/page.jsx`.
 - Prisma : `EquipmentRequest`, `FaultReport`, `Product`, `User`.
 - Environnement : `DATABASE_URL`, `AUTH_SECRET`.
 - Tests : vérifier agrégats avec jeu de données contrôlé et restriction au rôle admin.

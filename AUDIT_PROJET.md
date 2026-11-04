@@ -9,7 +9,7 @@ Les chemins d’URL indiqués ci-dessous sont déduits de l’App Router actuel 
 ## Architecture actuelle
 
 - `app/` est la racine App Router (pas de répertoire `src/`). Les pages, composants partagés, endpoints et dossiers de fonctionnalités cohabitent sous ce répertoire.
-- `app/products_frontend/` contient les pages et composants React des tableaux de bord, utilisateurs, tickets, produits, demandes d’équipement et pannes. Plusieurs `page.jsx` sont des Server Components qui lisent directement Prisma.
+- `app/Gestion_produits/` contient les pages et composants React des tableaux de bord, utilisateurs, tickets, produits, demandes d’équipement et pannes. Plusieurs `page.jsx` sont des Server Components qui lisent directement Prisma.
 - `app/backend/api/` contient la plupart des Route Handlers Next.js. Ce sont des routes HTTP, pas une couche de services métier séparée.
 - `app/backend/GestionProduit/` contient les Route Handlers de produits. Le fichier `route.js` à la racine de ce dossier est actuellement vide (`export {}`); les handlers fonctionnels sont dans ses sous-dossiers.
 - `app/api/` contient trois routes de compatibilité qui réexportent les handlers de connexion, déconnexion et création utilisateur existants.
@@ -36,42 +36,42 @@ Les pages sont conservées sous les chemins actuels. Pages reconnues dans l’in
 | URL | Fichier |
 | --- | --- |
 | `/` | `app/page.jsx` (page d’accueil générique du starter Next.js) |
-| `/products_frontend/Gestion_role/login` | `app/products_frontend/Gestion_role/login/page.jsx` |
-| `/products_frontend/Gestion_role/admin` | `app/products_frontend/Gestion_role/admin/page.jsx` |
-| `/products_frontend/Gestion_role/admin/ajouter-utilisateur` | `app/products_frontend/Gestion_role/admin/ajouter-utilisateur/page.jsx` |
-| `/products_frontend/Gestion_role/admin/demandes-equipement` | `app/products_frontend/Gestion_role/admin/demandes-equipement/page.jsx` |
-| `/products_frontend/Gestion_role/admin/declarations-pannes` | `app/products_frontend/Gestion_role/admin/declarations-pannes/page.jsx` |
-| `/products_frontend/Gestion_role/admin/tickets` | `app/products_frontend/Gestion_role/admin/tickets/page.jsx` |
-| `/products_frontend/Gestion_role/responsable` | `app/products_frontend/Gestion_role/responsable/page.jsx` |
-| `/products_frontend/Gestion_role/utilisateur` | `app/products_frontend/Gestion_role/utilisateur/page.jsx` |
-| `/products_frontend/Gestion_role/utilisateur/declarations-pannes` | `app/products_frontend/Gestion_role/utilisateur/declarations-pannes/page.jsx` |
-| `/products_frontend/Gestion_role/utilisateur/tickets` | `app/products_frontend/Gestion_role/utilisateur/tickets/page.jsx` |
-| `/products_frontend/Gestion_product/AffichageProduit` | `app/products_frontend/Gestion_product/AffichageProduit/page.jsx` |
-| `/products_frontend/Gestion_product/AffichageProduit/[id]` | `app/products_frontend/Gestion_product/AffichageProduit/[id]/page.jsx` |
-| `/products_frontend/Gestion_product/AjouterProduit` | `app/products_frontend/Gestion_product/AjouterProduit/page.jsx` |
-| `/products_frontend/Gestion_product/ModifierProduit` | `app/products_frontend/Gestion_product/ModifierProduit/page.jsx` |
-| `/products_frontend/User/AfficherUser` | `app/products_frontend/User/AfficherUser/page.jsx` |
+| `/Gestion_produits/Gestion_roles/login` | `app/Gestion_produits/Gestion_roles/login/page.jsx` |
+| `/Gestion_produits/Gestion_roles/admin` | `app/Gestion_produits/Gestion_roles/admin/page.jsx` |
+| `/Gestion_produits/Gestion_roles/admin/ajouter-utilisateur` | `app/Gestion_produits/Gestion_roles/admin/ajouter-utilisateur/page.jsx` |
+| `/Gestion_produits/Gestion_roles/admin/demandes-equipement` | `app/Gestion_produits/Gestion_roles/admin/demandes-equipement/page.jsx` |
+| `/Gestion_produits/Gestion_roles/admin/declarations-pannes` | `app/Gestion_produits/Gestion_roles/admin/declarations-pannes/page.jsx` |
+| `/Gestion_produits/Gestion_roles/admin/tickets` | `app/Gestion_produits/Gestion_roles/admin/tickets/page.jsx` |
+| `/Gestion_produits/Gestion_roles/responsable` | `app/Gestion_produits/Gestion_roles/responsable/page.jsx` |
+| `/Gestion_produits/Gestion_roles/utilisateur` | `app/Gestion_produits/Gestion_roles/utilisateur/page.jsx` |
+| `/Gestion_produits/Gestion_roles/utilisateur/declarations-pannes` | `app/Gestion_produits/Gestion_roles/utilisateur/declarations-pannes/page.jsx` |
+| `/Gestion_produits/Gestion_roles/utilisateur/tickets` | `app/Gestion_produits/Gestion_roles/utilisateur/tickets/page.jsx` |
+| `/Gestion_produits/Gestion_produit/AffichageProduit` | `app/Gestion_produits/Gestion_produit/AffichageProduit/page.jsx` |
+| `/Gestion_produits/Gestion_produit/AffichageProduit/[id]` | `app/Gestion_produits/Gestion_produit/AffichageProduit/[id]/page.jsx` |
+| `/Gestion_produits/Gestion_produit/AjouterProduit` | `app/Gestion_produits/Gestion_produit/AjouterProduit/page.jsx` |
+| `/Gestion_produits/Gestion_produit/ModifierProduit` | `app/Gestion_produits/Gestion_produit/ModifierProduit/page.jsx` |
+| `/Gestion_produits/User/AfficherUtilisateur` | `app/Gestion_produits/User/AfficherUtilisateur/page.jsx` |
 
 | Endpoint | Méthodes | Accès constaté |
 | --- | --- | --- |
-| `/backend/api/login` | `POST` | Public; vérifie les identifiants puis crée la session. |
-| `/backend/api/logout` | `POST` | Efface la session. |
-| `/api/login` | `POST` | Réexport du handler `/backend/api/login`. |
-| `/api/logout` | `POST` | Réexport du handler `/backend/api/logout`. |
-| `/api/users` | `POST` | Réexport de la création d’utilisateur admin. |
-| `/backend/api/users` | `POST` | Admin; crée un utilisateur. |
-| `/backend/api/users/[id]` | `GET`, `PATCH`, `DELETE` | Admin; rapport, modification et suppression d’utilisateur. |
-| `/backend/api/users/AfficherUsers` | `GET` | Admin; liste des utilisateurs. |
+| `/backend/api/connexion` | `POST` | Public; vérifie les identifiants puis crée la session. |
+| `/backend/api/deconnexion` | `POST` | Efface la session. |
+| `/api/connexion` | `POST` | Réexport du handler `/backend/api/connexion`. |
+| `/api/deconnexion` | `POST` | Réexport du handler `/backend/api/deconnexion`. |
+| `/api/utilisateurs` | `POST` | Réexport de la création d’utilisateur admin. |
+| `/backend/api/utilisateurs` | `POST` | Admin; crée un utilisateur. |
+| `/backend/api/utilisateurs/[id]` | `GET`, `PATCH`, `DELETE` | Admin; rapport, modification et suppression d’utilisateur. |
+| `/backend/api/utilisateurs/AfficherUtilisateurs` | `GET` | Admin; liste des utilisateurs. |
 | `/backend/api/tickets` | `GET`, `POST` | Session requise; liste filtrée par propriétaire sauf admin; création limitée aux rôles utilisateur/admin. |
 | `/backend/api/tickets/[id]` | `PATCH`, `DELETE` | Utilisateur propriétaire uniquement. |
-| `/backend/api/tickets/[id]/status` | `PATCH` | Admin ou utilisateur propriétaire; transitions imposées par rôle et statut. |
+| `/backend/api/tickets/[id]/statut` | `PATCH` | Admin ou utilisateur propriétaire; transitions imposées par rôle et statut. |
 | `/backend/api/tickets/[id]/messages` | `GET`, `POST` | Admin ou utilisateur propriétaire; pas de nouveau message si fermé. |
-| `/backend/api/tickets/[id]/attachments/[attachmentId]` | `GET` | Session requise; propriétaire ou admin. |
-| `/backend/api/equipment` | `GET` | Session requise; catalogue ou matériel accepté pour mode panne. |
-| `/backend/api/equipment-requests` | `GET`, `POST` | Session requise; lecture admin globale ou utilisateur propre; création de demande, avec compatibilité panne. |
-| `/backend/api/equipment-requests/[id]` | `PATCH` | Admin; accepter/refuser, traitement du stock transactionnel. |
-| `/backend/api/fault-reports` | `GET`, `POST` | Session requise; lecture filtrée; création réservée à l’utilisateur. |
-| `/backend/api/fault-reports/[id]` | `PATCH`, `DELETE` | Utilisateur propriétaire pour édition/suppression; admin pour le changement de statut. |
+| `/backend/api/tickets/[id]/pieces-jointes/[attachmentId]` | `GET` | Session requise; propriétaire ou admin. |
+| `/backend/api/equipement` | `GET` | Session requise; catalogue ou matériel accepté pour mode panne. |
+| `/backend/api/demandes-equipement` | `GET`, `POST` | Session requise; lecture admin globale ou utilisateur propre; création de demande, avec compatibilité panne. |
+| `/backend/api/demandes-equipement/[id]` | `PATCH` | Admin; accepter/refuser, traitement du stock transactionnel. |
+| `/backend/api/declarations-pannes` | `GET`, `POST` | Session requise; lecture filtrée; création réservée à l’utilisateur. |
+| `/backend/api/declarations-pannes/[id]` | `PATCH`, `DELETE` | Utilisateur propriétaire pour édition/suppression; admin pour le changement de statut. |
 | `/backend/GestionProduit/AjouterProduit` | `POST` | Admin. |
 | `/backend/GestionProduit/ModifierProduit` | `PUT` | Admin. |
 | `/backend/GestionProduit/SupprimerProduit` | `DELETE` | Admin. |
@@ -83,28 +83,28 @@ Les pages sont conservées sous les chemins actuels. Pages reconnues dans l’in
 
 | Domaine | Frontend / pages | API / logique actuelle | Modèles Prisma et relations |
 | --- | --- | --- | --- |
-| Authentification | `app/products_frontend/Gestion_role/login/page.jsx`, `app/components/LogoutButton.jsx`, `app/components/AppNavigation.jsx` | `app/backend/api/login/route.js`, `app/backend/api/logout/route.js`, `app/api/login/route.js`, `app/api/logout/route.js`, `lib/auth.js` | `User` |
-| Utilisateurs | `app/products_frontend/Gestion_role/admin/ajouter-utilisateur/page.jsx`, `CreateUserForm.jsx`, `app/products_frontend/User/AfficherUser/page.jsx` | `app/backend/api/users/route.js`, `app/backend/api/users/[id]/route.js`, `AfficherUsers/route.js`, réexport `app/api/users/route.js`; `lib/auth.js` | `User` relié à demandes, pannes, tickets, messages et notifications |
-| Tickets | Pages `admin/tickets` et `utilisateur/tickets`, panneaux `AdminTicketsPanel.jsx` / `UserTicketsPanel.jsx`, `app/components/TicketConversation.jsx`, `TicketStatusBadge.jsx` | Handlers `app/backend/api/tickets/**`; `lib/ticket-status.js`, `lib/ticket-attachments.js`, `lib/email.js`, `lib/auth.js`, `lib/prisma.js`, `lib/axios.js` | `Ticket` appartient facultativement à `User`; `TicketMessage` appartient à `Ticket` et facultativement à `User`; `TicketAttachment` appartient à `Ticket` et facultativement à `TicketMessage` |
-| Produits / stock | Pages `app/products_frontend/Gestion_product/**`, `DeleteProductButton.jsx` | Handlers `app/backend/GestionProduit/**`; appels Axios directs | `Product` est relié à `EquipmentRequest` et `FaultReport` |
-| Demandes d’équipement | Pages utilisateur et admin; `EquipmentRequestPanel.jsx`, `EquipmentRequestsPanel.jsx` | `app/backend/api/equipment*/**`; `lib/email.js`, `lib/auth.js`, `lib/prisma.js` | `EquipmentRequest` relie `User` et `Product`; le traitement modifie également `Product.stock` et `User.equipmentCount` |
-| Pannes | Pages utilisateur/admin; `FaultReportPanel.jsx`, `FaultReportsPanel.jsx` | `app/backend/api/fault-reports/**`; compatibilité dans `equipment-requests`; `lib/email.js`, `lib/auth.js`, `lib/prisma.js`, `qrcode` | `FaultReport` relie `User` et `Product`; `Notification` appartient à `User` |
+| Authentification | `app/Gestion_produits/Gestion_roles/login/page.jsx`, `app/components/BoutonDeconnexion.jsx`, `app/components/NavigationApplication.jsx` | `app/backend/api/connexion/route.js`, `app/backend/api/deconnexion/route.js`, `app/api/connexion/route.js`, `app/api/deconnexion/route.js`, `lib/auth.js` | `User` |
+| Utilisateurs | `app/Gestion_produits/Gestion_roles/admin/ajouter-utilisateur/page.jsx`, `FormulaireCreerUtilisateur.jsx`, `app/Gestion_produits/User/AfficherUtilisateur/page.jsx` | `app/backend/api/utilisateurs/route.js`, `app/backend/api/utilisateurs/[id]/route.js`, `AfficherUtilisateurs/route.js`, réexport `app/api/utilisateurs/route.js`; `lib/auth.js` | `User` relié à demandes, pannes, tickets, messages et notifications |
+| Tickets | Pages `admin/tickets` et `utilisateur/tickets`, panneaux `PanneauTicketsAdmin.jsx` / `PanneauTicketsUtilisateur.jsx`, `app/components/ConversationTicket.jsx`, `BadgeStatutTicket.jsx` | Handlers `app/backend/api/tickets/**`; `lib/statutTicket.js`, `lib/piecesJointesTickets.js`, `lib/courriel.js`, `lib/auth.js`, `lib/prisma.js`, `lib/axios.js` | `Ticket` appartient facultativement à `User`; `TicketMessage` appartient à `Ticket` et facultativement à `User`; `TicketAttachment` appartient à `Ticket` et facultativement à `TicketMessage` |
+| Produits / stock | Pages `app/Gestion_produits/Gestion_produit/**`, `BoutonSupprimerProduit.jsx` | Handlers `app/backend/GestionProduit/**`; appels Axios directs | `Product` est relié à `EquipmentRequest` et `FaultReport` |
+| Demandes d’équipement | Pages utilisateur et admin; `PanneauDemandeEquipement.jsx`, `PanneauDemandesEquipement.jsx` | `app/backend/api/equipement*/**`; `lib/courriel.js`, `lib/auth.js`, `lib/prisma.js` | `EquipmentRequest` relie `User` et `Product`; le traitement modifie également `Product.stock` et `User.equipmentCount` |
+| Pannes | Pages utilisateur/admin; `PanneauDeclarationPanne.jsx`, `PanneauDeclarationsPannes.jsx` | `app/backend/api/declarations-pannes/**`; compatibilité dans `equipment-requests`; `lib/courriel.js`, `lib/auth.js`, `lib/prisma.js`, `qrcode` | `FaultReport` relie `User` et `Product`; `Notification` appartient à `User` |
 
-L’alias `@/*` est configuré vers la racine (`jsconfig.json`). Le client Axios de `lib/axios.js` cible `/backend/api`; les quelques `fetch` directs reprennent explicitement ce préfixe. Les composants client utilisent `lib/axios.js`, `lib/ticket-status.js` et les composants partagés. Aucun import Prisma n’a été relevé dans les composants explicitement marqués comme composants client; en revanche, plusieurs pages serveur Prisma sont directement, ce qui empêche de les extraire comme simples composants frontend.
+L’alias `@/*` est configuré vers la racine (`jsconfig.json`). Le client Axios de `lib/axios.js` cible `/backend/api`; les quelques `fetch` directs reprennent explicitement ce préfixe. Les composants client utilisent `lib/axios.js`, `lib/statutTicket.js` et les composants partagés. Aucun import Prisma n’a été relevé dans les composants explicitement marqués comme composants client; en revanche, plusieurs pages serveur Prisma sont directement, ce qui empêche de les extraire comme simples composants frontend.
 
 ## Problèmes et risques détectés
 
 1. **Mélange des responsabilités** : `app/backend/api/**/route.js` contient simultanément transport HTTP, vérification de session, validation, règles métier, accès Prisma, e-mail et parfois QR code. Il n’existe pas de repository/service/validation par domaine.
 2. **Frontend lié au backend** : les pages serveur de produits, du tableau admin et des demandes lisent Prisma directement. Les composants client sont davantage découplés, mais leurs URL sont souvent codées en dur.
-3. **Routes API publiques historiques** : les routes `/backend/api/...` sont réellement appelées par le frontend. `/api/login`, `/api/logout` et `/api/users` réexportent certaines opérations. Les remplacer ou déplacer les Route Handlers sans façades casserait des consommateurs.
+3. **Routes API publiques historiques** : les routes `/backend/api/...` sont réellement appelées par le frontend. `/api/connexion`, `/api/deconnexion` et `/api/utilisateurs` réexportent certaines opérations. Les remplacer ou déplacer les Route Handlers sans façades casserait des consommateurs.
 4. **Routes de produits distinctes** : les endpoints `/backend/GestionProduit/...` ne suivent pas le segment `/backend/api`; les formulaires frontend les appellent directement.
-5. **Protection de pages inégale** : des pages comme `app/products_frontend/Gestion_product/AffichageProduit/page.jsx` et `ModifierProduit/page.jsx` accèdent à Prisma sans `requireRole` constaté, alors que le menu les cache aux non-admins. Les APIs de mutation produit vérifient le rôle, mais la protection de navigation ne devrait pas dépendre du menu.
+5. **Protection de pages inégale** : des pages comme `app/Gestion_produits/Gestion_produit/AffichageProduit/page.jsx` et `ModifierProduit/page.jsx` accèdent à Prisma sans `requireRole` constaté, alors que le menu les cache aux non-admins. Les APIs de mutation produit vérifient le rôle, mais la protection de navigation ne devrait pas dépendre du menu.
 6. **Secret de session de repli** : `lib/auth.js` utilise une valeur de développement fixe lorsque `AUTH_SECRET` est absent. `.env.example` ne documente pas cette variable. La configuration de production doit imposer un secret propre à l’environnement avant toute intégration.
-7. **Documentation e-mail incohérente** : `lib/email.js` emploie Nodemailer et les variables `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `MAIL_FROM`; `README.md` mentionne aussi Resend et `EMAIL_FROM`. Le code courant et `.env.example` indiquent le flux SMTP comme effectif.
-8. **Voies de panne qui se recouvrent** : les routes dédiées `/backend/api/fault-reports` coexistent avec un chemin historique `requestType: "panne"` dans `/backend/api/equipment-requests`. Le second chemin n’a pas été trouvé dans les appels frontend actuels; il est documenté comme compatibilité, à confirmer avant retrait.
+7. **Documentation e-mail incohérente** : `lib/courriel.js` emploie Nodemailer et les variables `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `MAIL_FROM`; `README.md` mentionne aussi Resend et `EMAIL_FROM`. Le code courant et `.env.example` indiquent le flux SMTP comme effectif.
+8. **Voies de panne qui se recouvrent** : les routes dédiées `/backend/api/declarations-pannes` coexistent avec un chemin historique `requestType: "panne"` dans `/backend/api/demandes-equipement`. Le second chemin n’a pas été trouvé dans les appels frontend actuels; il est documenté comme compatibilité, à confirmer avant retrait.
 9. **Suppression métier destructive existante** : la suppression produit efface aussi les demandes d’équipement et signalements liés; la suppression d’un utilisateur peut entraîner des suppressions par cascade prévues au schéma. Ce comportement doit être préservé pendant une simple restructuration et testé séparément avant toute évolution métier.
 10. **Validation d’entrée produit incomplète côté serveur** : la création produit convertit les champs mais n’applique pas les vérifications explicites visibles dans la modification. Une correction serait une évolution de sécurité distincte, à isoler pour ne pas modifier silencieusement le périmètre métier.
-11. **Organisation et noms** : `products_frontend` est sous `app/` malgré son rôle métier, et `SuppimeProduit` contient une faute historique dans son chemin. Renommer ces chemins pourrait casser les imports ou les URL; ce n’est pas requis pour modulariser les modules.
+11. **Organisation et noms** : `Gestion_produits` est sous `app/` malgré son rôle métier, et `SuppimeProduit` contient une faute historique dans son chemin. Renommer ces chemins pourrait casser les imports ou les URL; ce n’est pas requis pour modulariser les modules.
 12. **Résidus candidats, pas suppressions proposées** : `app/backend/GestionProduit/route.js` n’exporte aucun handler et `app/page.jsx` affiche encore la page starter. Ils sont repérés, mais leur suppression/remplacement n’est pas incluse sans décision explicite.
 13. **Pas de tests automatisés repérés** : aucun fichier `*.test.*` ou `*.spec.*` n’a été trouvé. Les contrôles disponibles reposent pour l’instant sur ESLint, validation Prisma et build.
 
@@ -126,7 +126,7 @@ Le principe directeur est de préserver les fichiers spéciaux et leur chemin da
 1. **Étape A — sécurité et baseline** : lire les guides Next.js 16 présents dans les dépendances avant toute modification de code; confirmer les chemins consommateurs avec recherches d’imports; garder la validation et la logique actuelles. Ne pas modifier le schéma ni les données.
 2. **Étape B — tickets** : extraire progressivement les opérations/validations de `app/backend/api/tickets/**` vers un domaine serveur `backend/features/tickets/` (services, accès aux données et validation selon les frontières réellement utiles). Conserver les Route Handlers, URL, méthodes et réponses HTTP. Déplacer ensuite les composants `TicketConversation`, `TicketAttachments`, `TicketStatusBadge` et panneaux vers `frontend/features/tickets/`, en gardant les pages `app/.../page.jsx` comme entrées. Le module partagé de statuts doit rester importable côté client et serveur, sans importer Prisma.
 3. **Étape C — demandes et pannes** : traiter séparément `equipment-requests` puis `fault-reports`; préserver transactions, statuts, rôles, notifications, e-mails, QR code et la compatibilité identifiée jusqu’à vérification de ses consommateurs. Maintenir les pages Next.js à leurs URL actuelles.
-4. **Étape D — produits et utilisateurs** : extraire les accès Prisma des Route Handlers et pages serveur concernés; conserver les routes historiques produit et les réexports `/api/users`; déplacer seulement les composants frontend réutilisables. Documenter explicitement les cascades et comportements de suppression existants.
+4. **Étape D — produits et utilisateurs** : extraire les accès Prisma des Route Handlers et pages serveur concernés; conserver les routes historiques produit et les réexports `/api/utilisateurs`; déplacer seulement les composants frontend réutilisables. Documenter explicitement les cascades et comportements de suppression existants.
 5. **Étape E — socle** : ranger l’authentification, Prisma et l’e-mail derrière une frontière serveur claire (par exemple `backend/auth`, `backend/lib`), sans exposer ces imports au client; garder un seul client Prisma et une seule implémentation e-mail. Garder `shared/` uniquement pour les constantes et fonctions réellement sans dépendance serveur.
 6. **À chaque module** : lister ses fichiers/dépendances; faire un changement ciblé; contrôler imports et alias, puis lancer au minimum ESLint et build; valider les URL/méthodes par comparaison à la matrice ci-dessus. N’avancer au module suivant qu’après succès ou explication d’un blocage.
 7. **Documentation finale** : après les décisions de migration, créer `ARCHITECTURE_PROJET.md`, `ROUTES_API.md`, `GUIDE_INTEGRATION.md` et `DEPENDANCES_MODULES.md` à partir des fichiers réellement déplacés et des dépendances confirmées. Ne pas recopier des variables secrètes; lister uniquement leurs noms.
@@ -152,7 +152,7 @@ Après validation du plan, les implémentations ont été regroupées sous `src/
 - Modules backend livrés : `auth`, `db`, `notifications`, `dashboard`, `tickets`, `users`, `products`, `equipment-requests`, `fault-reports`.
 - Modules frontend livrés : composants communs et fonctionnalités `tickets`, `users`, `products`, `equipment-requests`, `fault-reports`.
 - Les pages produit et demandes qui lisaient Prisma directement utilisent désormais des queries backend. Les pages produit liste/édition vérifient le rôle admin côté serveur.
-- Routes de build toujours présentes : `/api/login`, `/api/logout`, `/api/users`, tous les endpoints `/backend/api/...`, `/backend/GestionProduit/...` et les pages `/products_frontend/...` observées dans la phase 1.
+- Routes de build toujours présentes : `/api/connexion`, `/api/deconnexion`, `/api/utilisateurs`, tous les endpoints `/backend/api/...`, `/backend/GestionProduit/...` et les pages `/Gestion_produits/...` observées dans la phase 1.
 - `prisma/schema.prisma` et `prisma/migrations/` n’ont pas été modifiés; aucune migration ni opération de base n’a été exécutée.
 - Vérifications finales : `npm run lint` réussi; `npx prisma validate` réussi; `npm run build` réussi et route map conservée. Aucun test automatisé n’est présent. PostgreSQL et SMTP n’ont pas été testés en exécution.
 

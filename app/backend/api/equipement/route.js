@@ -1,0 +1,1 @@
+export { GET } from "@backend/features/demandes-equipement/equipement.handler";

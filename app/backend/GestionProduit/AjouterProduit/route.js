@@ -1,1 +1,1 @@
-export { POST } from "@backend/features/products/product.handler";
+export { POST } from "@backend/features/produits/produit.handler";

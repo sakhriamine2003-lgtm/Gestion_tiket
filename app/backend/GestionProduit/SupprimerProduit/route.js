@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { getSession } from '@/lib/authentification';
 export async function DELETE(request) {
     const user = await getSession();
     if (!user)

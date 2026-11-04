@@ -1,0 +1,1 @@
+export { GET } from "@backend/features/utilisateurs/listeUtilisateurs.handler";

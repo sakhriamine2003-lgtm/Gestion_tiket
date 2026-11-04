@@ -1,0 +1,1 @@
+export { POST } from "@backend/features/authentification/connexion.handler";

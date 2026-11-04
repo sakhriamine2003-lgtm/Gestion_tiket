@@ -1,0 +1,1 @@
+export { PATCH } from "@backend/features/demandes-equipement/traiterDemandeEquipement.handler";

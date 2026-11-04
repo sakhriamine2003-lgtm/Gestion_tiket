@@ -1,1 +1,0 @@
-export { GET } from "@backend/features/users/user-list.handler";

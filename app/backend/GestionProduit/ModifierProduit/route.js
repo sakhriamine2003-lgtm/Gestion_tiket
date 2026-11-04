@@ -1,1 +1,1 @@
-export { PUT } from "@backend/features/products/product.handler";
+export { PUT } from "@backend/features/produits/produit.handler";
