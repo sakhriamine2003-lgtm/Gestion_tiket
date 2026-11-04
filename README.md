@@ -1,6 +1,6 @@
 # Gestion des tickets et du matériel
 
-Application web JavaScript/JSX construite avec Next.js App Router, React, Prisma et PostgreSQL. Les pages et les routes API sont dans `app/`. Le contrôle des sessions est dans `lib/auth.js`.
+Application web JavaScript/JSX construite avec Next.js App Router, React, Prisma et PostgreSQL. Les pages et Route Handlers restent dans `app/`; les modules réutilisables sont organisés sous `src/frontend/`, `src/backend/` et `src/shared/`.
 
 ## Démarrer le projet
 
@@ -32,7 +32,7 @@ npx prisma validate
 - `admin` : traite les demandes, consulte toutes les déclarations et modifie leur statut.
 - `responsable` : rôle reconnu par les sessions ; les pages spécifiques dépendent de l’application.
 
-Les rôles sont définis dans `lib/auth.js`. Les pages protègent l’accès avec `requireRole(...)` et les routes API vérifient aussi la session et le rôle.
+Les rôles sont définis dans `src/backend/auth/session.js`. Les pages protègent l’accès avec `requireRole(...)` et les routes API vérifient aussi la session et le rôle. `lib/auth.js` est conservé comme réexport de compatibilité.
 
 ## Parcours matériel et pannes
 
@@ -52,47 +52,24 @@ Les diagrammes UML de l'application, affichables dans l'aperçu Markdown de VS C
 
 ## Tickets utilisateur
 
-Les tickets suivent le workflow `Ouvert → En cours → Traité → Fermé` (valeurs en base : `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, définies dans `lib/ticket-status.js`). L’administrateur passe un ticket à « En cours » puis « Traité » ; l’utilisateur propriétaire peut ensuite le fermer. Chaque changement envoie un e-mail (SMTP) : à l’utilisateur pour « En cours » et « Traité », à l’administrateur pour « Fermé » (adresse `ADMIN_EMAIL`, sinon comptes administrateurs). Un ticket fermé n’accepte plus de messages mais reste consultable. Les permissions et transitions sont contrôlées côté serveur dans `app/backend/api/tickets/[id]/status/route.js`.
+Les tickets suivent le workflow `Ouvert → En cours → Traité → Fermé` (valeurs en base : `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, définies dans `src/shared/ticket-status.js`). L’administrateur passe un ticket à « En cours » puis « Traité » ; l’utilisateur propriétaire peut ensuite le fermer. Chaque changement envoie un e-mail (SMTP) : à l’utilisateur pour « En cours » et « Traité », à l’administrateur pour « Fermé » (`ADMIN_EMAIL`, sinon comptes administrateurs). Un ticket fermé n’accepte plus de messages mais reste consultable. Les transitions métier sont dans `src/backend/features/tickets/ticket.service.js`; la route App Router est une façade.
 
 Les tickets sont distincts des déclarations de pannes. Un utilisateur crée un ticket depuis « Mes tickets » avec un titre, un message et, facultativement, jusqu’à quatre photos ou vidéos (25 Mo au total). Les photos sont limitées à 5 Mo chacune et les vidéos à 20 Mo chacune. Les utilisateurs ne voient que leurs tickets ; les administrateurs voient tous les tickets dans la section « Tickets ».
 
 La migration `prisma/migrations/20261006153500_add_user_tickets_and_attachments/migration.sql` ajoute la relation utilisateur et le stockage des pièces jointes. Les fichiers ne sont accessibles qu’à l’utilisateur propriétaire et aux administrateurs.
 
-## Fichiers backend
+## Architecture et intégration
 
-- `app/backend/api/equipment/route.js` : liste les produits ; en mode panne, renvoie uniquement les produits associés à une demande acceptée par l’utilisateur connecté.
-- `app/backend/api/equipment-requests/route.js` : crée des demandes d’équipement et renvoie les demandes de l’utilisateur, ou toutes les demandes à l’admin. Ce fichier conserve aussi la compatibilité avec l’ancien formulaire de panne.
-- `app/backend/api/equipment-requests/[id]/route.js` : permet à l’admin d’accepter ou de refuser une demande et met à jour le stock lors d’une acceptation.
-- `app/backend/api/fault-reports/route.js` : liste les déclarations (toutes pour l’admin, personnelles pour l’utilisateur) et en crée après vérification du matériel accepté.
-- `app/backend/api/fault-reports/[id]/route.js` : réserve à l’admin la modification du statut d’une panne.
-- `app/backend/api/tickets/route.js` : crée les tickets utilisateur et renvoie les tickets selon le rôle.
-- `app/backend/api/tickets/[id]/attachments/[attachmentId]/route.js` : sert une pièce jointe après contrôle des droits.
-- `app/backend/GestionProduit/AjouterProduit/route.js` : crée un produit après vérification de la session et du rôle administrateur.
-- `prisma/schema.prisma` : modèles, champs et relations Prisma, dont `Product` et `FaultReport`.
-- `prisma/migrations/20260930120000_add_fault_reports/migration.sql` : crée la table des déclarations et limite ses statuts en base.
-- `lib/prisma.js` : instance Prisma partagée par les routes et pages serveur.
-- `lib/axios.js` : instance Axios utilisée par les panneaux client.
+- `app/` conserve les pages, le layout et les Route Handlers; les routes API délèguent leurs méthodes aux handlers backend.
+- `src/backend/features/` organise tickets, utilisateurs, auth, produits, demandes, pannes et lectures du tableau admin.
+- `src/frontend/features/` contient les panneaux et formulaires par fonctionnalité; `src/frontend/components/` contient la navigation commune.
+- `src/backend/db/prisma.js` centralise l’instance Prisma; `prisma/schema.prisma` et les migrations restent inchangés.
+- `lib/` expose quelques anciens chemins sous forme de réexports de compatibilité.
 
-## Fichiers frontend
-
-- `app/components/AppNavigation.jsx` : liens de navigation adaptés au rôle.
-- `app/products_frontend/Gestion_product/AjouterProduit/page.jsx` : formulaire de création d’un produit pour la gestion du stock.
-- `app/products_frontend/Gestion_role/admin/demandes-equipement/page.jsx` et `EquipmentRequestsPanel.jsx` : page admin et interface de traitement des demandes.
-- `app/products_frontend/Gestion_role/admin/declarations-pannes/page.jsx` et `FaultReportsPanel.jsx` : page admin et tableau des déclarations avec changement de statut.
-- `app/products_frontend/Gestion_role/admin/tickets/page.jsx` et `AdminTicketsPanel.jsx` : page admin des tickets utilisateur.
-- `app/products_frontend/Gestion_role/utilisateur/declarations-pannes/page.jsx` et `FaultReportPanel.jsx` : formulaire de panne et historique personnel.
-- `app/products_frontend/Gestion_role/utilisateur/tickets/page.jsx` et `UserTicketsPanel.jsx` : création et historique des tickets personnels.
-- `app/products_frontend/Gestion_role/utilisateur/page.jsx` et `EquipmentRequestPanel.jsx` : tableau de bord et demandes d’équipement de l’utilisateur.
+Guides détaillés : [ARCHITECTURE_PROJET.md](./ARCHITECTURE_PROJET.md), [ROUTES_API.md](./ROUTES_API.md), [GUIDE_INTEGRATION.md](./GUIDE_INTEGRATION.md) et [DEPENDANCES_MODULES.md](./DEPENDANCES_MODULES.md).
 
 ## Notifications e-mail
 
 Le flux de demandes d’équipement et l’ancien formulaire de panne envoient des e-mails à l’utilisateur et aux administrateurs. La page dédiée « Mes déclarations de pannes » n’envoie pas d’e-mail.
 
-Pour activer l’envoi, configurer Resend dans `.env` :
-
-```env
-RESEND_API_KEY=re_xxxxxxxxx
-EMAIL_FROM=Gestion tickets <notifications@votre-domaine.com>
-```
-
-`EMAIL_FROM` doit utiliser un domaine vérifié dans Resend. Sans ces variables, les demandes continuent de fonctionner et l’absence de configuration est inscrite dans les logs.
+L’application envoie les e-mails via Nodemailer/SMTP. Configurer les noms `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` et `MAIL_FROM` dans l’environnement de déploiement. `ADMIN_EMAIL` est facultative; sans elle, les e-mails de clôture de ticket sont envoyés aux comptes admin en base. Sans SMTP complet, le traitement métier continue mais l’envoi peut échouer. Ne pas ajouter de valeurs secrètes à la documentation.

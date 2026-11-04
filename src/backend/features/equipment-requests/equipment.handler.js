@@ -1,0 +1,40 @@
+import { getSession } from "@backend/auth/session";
+import { prisma } from "@backend/db/prisma";
+
+export async function GET(request) {
+    const user = await getSession();
+    if (!user)
+        return Response.json({ error: "Authentification requise." }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const mode = searchParams.get("type") ?? "demande";
+    if (mode === "panne") {
+        const acceptedRequests = await prisma.equipmentRequest.findMany({
+            where: { userId: user.id, status: "Acceptée" },
+            include: { product: true },
+            orderBy: { createdAt: "desc" },
+        });
+        const uniqueProducts = new Map();
+        for (const acceptedRequest of acceptedRequests) {
+            if (!uniqueProducts.has(acceptedRequest.productId)) {
+                uniqueProducts.set(acceptedRequest.productId, acceptedRequest);
+            }
+        }
+        return Response.json([...uniqueProducts.values()].map((requestItem) => ({
+            id: requestItem.product.id,
+            name: requestItem.product.marque,
+            type: requestItem.product.bureau,
+            description: "Produit accepté par l’administrateur. Vous pouvez maintenant déclarer une panne.",
+            condition: "Accepté par l’administrateur",
+            available: true,
+        })));
+    }
+    const equipment = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
+    return Response.json(equipment.map((product) => ({
+        id: product.id,
+        name: product.marque,
+        type: product.bureau,
+        description: `Produit disponible dans le stock (${product.stock} unité${product.stock > 1 ? "s" : ""}).`,
+        condition: "Disponible",
+        available: product.stock > 0,
+    })));
+}

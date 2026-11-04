@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, UserPlus } from "lucide-react";
-import { requireRole } from "@/lib/auth";
-import CreateUserForm from "../CreateUserForm";
+import { requireRole } from "@backend/auth/session";
+import CreateUserForm from "@frontend/features/users/CreateUserForm";
 
 export default async function AddUserPage() {
   await requireRole("admin");

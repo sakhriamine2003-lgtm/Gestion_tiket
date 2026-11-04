@@ -1,22 +1,9 @@
-import { requireRole } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import EquipmentRequestsPanel from "../EquipmentRequestsPanel";
+import { requireRole } from "@backend/auth/session";
+import { getAdminEquipmentRequestPageData } from "@backend/features/equipment-requests/equipment-request.queries";
+import EquipmentRequestsPanel from "@frontend/features/equipment-requests/EquipmentRequestsPanel";
 export default async function EquipmentRequestsPage() {
     await requireRole("admin");
-    const [requests, equipment] = await Promise.all([
-        prisma.equipmentRequest.findMany({
-            include: {
-                user: { select: { name: true, email: true } },
-                product: { select: { marque: true, bureau: true } },
-            },
-            orderBy: { createdAt: "desc" },
-        }),
-        prisma.product.findMany({
-            where: { stock: { gt: 0 } },
-            orderBy: { createdAt: "desc" },
-            select: { id: true, marque: true, bureau: true, stock: true },
-        }),
-    ]);
+    const { requests, equipment } = await getAdminEquipmentRequestPageData();
     return (<main className="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-8">
       <div>
         <p className="text-sm text-slate-500">Gestion matériel</p>

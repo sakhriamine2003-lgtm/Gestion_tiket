@@ -19,7 +19,7 @@ import {
   X,
   Pencil,
 } from "lucide-react";
-import api from "@/lib/axios";
+import api from "@frontend/services/api";
 
 const roleStyles = {
   admin: "bg-violet-50 text-violet-700 ring-violet-600/20",

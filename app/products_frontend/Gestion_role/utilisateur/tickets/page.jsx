@@ -1,5 +1,5 @@
-import { requireRole } from "@/lib/auth";
-import UserTicketsPanel from "./UserTicketsPanel";
+import { requireRole } from "@backend/auth/session";
+import UserTicketsPanel from "@frontend/features/tickets/UserTicketsPanel";
 export default async function UserTicketsPage() {
     await requireRole("utilisateur");
     return (<main className="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-8">

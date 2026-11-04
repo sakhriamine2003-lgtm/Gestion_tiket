@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@backend/auth/session";
 export default async function ResponsablePage() {
     const user = await requireRole("responsable");
     return (<main className="mx-auto w-full max-w-4xl space-y-6 p-8">

@@ -1,15 +1,15 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import EditProductForm from "./EditProductForm";
+import { requireRole } from "@backend/auth/session";
+import { getProductForEdit } from "@backend/features/products/product.queries";
+import EditProductForm from "@frontend/features/products/EditProductForm";
 export default async function EditProductPage({ searchParams }) {
+    await requireRole("admin");
     const { id: idParam } = await searchParams;
     const id = Number(idParam);
     if (!Number.isInteger(id) || id <= 0) {
         notFound();
     }
-    const product = await prisma.product.findUnique({
-        where: { id },
-    });
+    const product = await getProductForEdit(id);
     if (!product) {
         notFound();
     }

@@ -1,4 +1,14 @@
 @import "tailwindcss";
+
+svg.lucide {
+  color: #0f766e;
+}
+
+button.text-white svg.lucide,
+a.text-white svg.lucide {
+  color: #fff;
+}
+
 /* 
 :root {
   --background: #ffffff;
