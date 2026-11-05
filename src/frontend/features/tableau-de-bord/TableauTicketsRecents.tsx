@@ -35,7 +35,7 @@ export default function RecentTicketsTable({ tickets, query }: { tickets: Ticket
                             <td className="max-w-48 truncate px-3 py-3.5 text-xs text-slate-700">{ticket.title}</td>
                             <td className="px-3 py-3.5"><span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ring-inset ${status.badge}`}>{status.label}</span></td>
                             <td className="whitespace-nowrap px-3 py-3.5 text-[11px] text-slate-500">{dateFormat.format(new Date(ticket.createdAt))}</td>
-                            <td className="px-4 py-3.5"><Link href={`${dashboardPath}/tickets`} aria-label={`Consulter le ticket ${ticket.id}`} className="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-blue-50 hover:text-blue-700"><ArrowRight size={15} /></Link></td>
+                            <td className="px-4 py-3.5"><Link href={`${dashboardPath}/tickets?ticketId=${ticket.id}`} aria-label={`Consulter le ticket ${ticket.id}`} className="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-blue-50 hover:text-blue-700"><ArrowRight size={15} /></Link></td>
                         </tr>;
                     })}
                     {visible.length === 0 ? <tr><td colSpan={6} className="px-5 py-10 text-center text-xs text-slate-500">{tickets.length ? "Aucun ticket ne correspond à la recherche." : "Aucun ticket enregistré."}</td></tr> : null}

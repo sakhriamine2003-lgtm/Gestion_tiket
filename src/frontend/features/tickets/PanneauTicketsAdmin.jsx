@@ -6,11 +6,11 @@ import api from "@frontend/services/api";
 import TicketConversation from "@frontend/features/tickets/ConversationTicket";
 import TicketStatusBadge from "@frontend/features/tickets/BadgeStatutTicket";
 
-export default function AdminTicketsPanel() {
+export default function AdminTicketsPanel({ initialTicketId = null }) {
     const [tickets, setTickets] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState("");
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedId, setSelectedId] = useState(initialTicketId);
     async function refreshTickets() {
         try {
             const response = await api.get("/tickets");
